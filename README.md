@@ -2,4 +2,4 @@
 
 My personal dumbster
 
-![](assets/videos/gorda.mp4)
+![](assets/videos/gorda.gif)
