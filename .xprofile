@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# sourced at boot by ~/.xinitrc and most display managers
+
+# Home dir cleaning
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="$HOME/.cache"
+
+export BUNDLE_USER_CONFIG="$XDG_CONFIG_HOME"/bundle
+export BUNDLE_USER_CACHE="$XDG_CACHE_HOME"/bundle
+export BUNDLE_USER_PLUGIN="$XDG_DATA_HOME"/bundle
+export CARGO_HOME="$XDG_DATA_HOME"/cargo
+export GTK2_RC_FILES="$XDG_CONFIG_HOME"/gtk-2.0/gtkrc
+export NODE_REPL_HISTORY="$XDG_DATA_HOME"/node_repl_history
+export GEM_HOME="$(ruby -e 'puts Gem.user_dir')"
+export GEM_SPEC_CACHE="$XDG_CACHE_HOME"/gem
+export PYTHONSTARTUP="$XDG_CONFIG_HOME"/python/startup.py
+export ZDOTDIR="$XDG_CONFIG_HOME"/zsh
+
+# LaTeX projects image directory
+export TEXINPUTS=./images:$TEXINPUTS
+
+# Japanese input
+export GTK_IM_MODULE=ibus
+export XMODIFIERS=@im=ibus
+export QT_IM_MODULE=ibus
+
+export PATH="$GEM_HOME/bin:$HOME/.local/bin:$PATH"
+
+picom -b &
+nm-applet &
+volumeicon &
+ibus-daemon -drx &
+nitrogen --restore &
+xfce4-power-manager &
+/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
+gnome-keyring-daemon --start --components=pkcs11 &
+ksuperkey -e 'Super_L=Alt_L|F1' &
+ksuperkey -e 'Super_R=Alt_L|F1' &
+xset dpms 600 900 1200
+xset r rate 350 60

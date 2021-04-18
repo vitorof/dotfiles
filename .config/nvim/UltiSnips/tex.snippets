@@ -1,0 +1,71 @@
+snippet sec "begin section"
+\section{$1}
+
+$0
+endsnippet
+
+snippet sub "begin subsection"
+\subsection{$1}
+
+$0
+endsnippet
+
+snippet sec* "begin section*"
+\section*{$1}
+
+$0
+endsnippet
+
+snippet sub* "begin subsection*"
+\subsection*{$1}
+
+$0
+endsnippet
+
+snippet beg "begin environment"
+\begin{$1}
+  $2
+\end{$1}
+$0
+endsnippet
+
+snippet lab "label"
+\label{$1}$0
+endsnippet
+
+snippet fig "begin figure"
+\begin{figure}[${1:H}]
+  \centering
+  \includegraphics[$2]{$3}
+  \caption{$4}
+  \label{$5}
+\end{figure}
+$0
+endsnippet
+
+snippet ali "begin align"
+\begin{align}
+  $1
+\end{align}
+$0
+endsnippet
+
+snippet ali* "begin align*"
+\begin{align*}
+  $1
+\end{align*}
+$0
+endsnippet
+
+global !p
+def complete(txt, opts):
+  if txt:
+    opts = [m[len(txt):] for m in opts if m.startswith(txt)]
+  if len(opts) == 1:
+    return opts[0]
+  return f"({'|'.join(opts)})"
+endglobal
+
+snippet st "status" b
+status $1`!p snip.rv=complete(t[1], ['new', 'incomplete', 'invalid'])`
+endsnippet
