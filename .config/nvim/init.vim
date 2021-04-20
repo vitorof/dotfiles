@@ -11,6 +11,7 @@ Plug 'liuchengxu/vim-which-key'
 Plug 'lervag/vimtex'
 Plug 'SirVer/ultisnips'
 Plug 'neovimhaskell/haskell-vim'
+Plug 'chrisbra/Colorizer'
 
 call plug#end()
 call which_key#register('<Space>', "g:which_key_map")
