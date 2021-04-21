@@ -1,25 +1,28 @@
+-- If LuaRocks is installed, make sure that packages installed through it are
+-- found (e.g. lgi). If LuaRocks is not installed, do nothing.
 pcall(require, "luarocks.loader")
 
 -- Standard awesome library
 local gears = require("gears")
 local awful = require("awful")
--- local lain  = require("lain")
 require("awful.autofocus")
-
 -- Widget and layout library
 local wibox = require("wibox")
-
 -- Theme handling library
 local beautiful = require("beautiful")
-
 -- Notification library
 local naughty = require("naughty")
 local menubar = require("menubar")
 local hotkeys_popup = require("awful.hotkeys_popup")
-
--- Enable hotkeys help widget for VIM and other apps when client with a matching name is opened
+-- Enable hotkeys help widget for VIM and other apps
+-- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
 
+-----------------------------------------------------
+---------------   Error handling   ------------------
+-----------------------------------------------------
+-- Check if awesome encountered an error during startup and fell back to
+-- another config (This code will only ever execute for the fallback config)
 if awesome.startup_errors then
     naughty.notify({ preset = naughty.config.presets.critical,
                      title = "Oops, there were errors during startup!",
@@ -41,27 +44,59 @@ do
     end)
 end
 
-local theme = "archlabs"
-beautiful.init(gears.filesystem.get_configuration_dir() .. "themes/" .. theme .. "/theme.lua")
+
+-----------------------------------------------------
+-------------  Variable definitions  ----------------
+-----------------------------------------------------
+-- Themes define colours, icons, font and wallpapers.
+beautiful.init(gears.filesystem.get_configuration_dir() .. "themes/archlabs/theme.lua")
 local xresources = require("beautiful.xresources")
 local dpi = xresources.apply_dpi
 
+-- Default applications
+-- terminal = "xterm"
 terminal = "exo-open --launch TerminalEmulator"
 web_browser = "exo-open --launch WebBrowser"
 file_manager = "exo-open --launch FileManager"
-editor = os.getenv("EDITOR") or "vim"
+editor = os.getenv("EDITOR") or "nano"
+-- editor_cmd = terminal .. " -e " .. editor
 editor_cmd = "exo-open "
+-- Duckduckgo
 web_search_cmd = "exo-open https://duckduckgo.com/?q="
+-- Google
+-- web_search_cmd = "exo-open https://www.google.com/search?q="
 
+-- Default modkey.
+-- Usually, Mod4 is the key with a logo between Control and Alt.
+-- If you do not like this or do not have such a key,
+-- I suggest you to remap Mod4 to another key using xmodmap or other tools.
+-- However, you can use another modifier like Mod1, but it may interact with others.
 modkey = "Mod4"
 
+-- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
     awful.layout.suit.floating,
     awful.layout.suit.tile,
     awful.layout.suit.tile.left,
+    awful.layout.suit.tile.bottom,
+    awful.layout.suit.tile.top,
+    awful.layout.suit.fair,
+    awful.layout.suit.fair.horizontal,
+    awful.layout.suit.spiral,
+    awful.layout.suit.spiral.dwindle,
+    awful.layout.suit.max,
+    awful.layout.suit.max.fullscreen,
+    awful.layout.suit.magnifier,
+    awful.layout.suit.corner.nw,
+    -- awful.layout.suit.corner.ne,
+    -- awful.layout.suit.corner.sw,
+    -- awful.layout.suit.corner.se,
 }
 
--- Helpers functions
+-----------------------------------------------------
+---------------   Helper Functions   ----------------
+-----------------------------------------------------
+-- Add a clickable effect to a widget by changing the cursor on mouse::enter and mouse::leave
 function add_clickable_effect(w)
     local original_cursor = "left_ptr"
     local hover_cursor = "hand1"
@@ -81,6 +116,7 @@ function add_clickable_effect(w)
     end)
 end
 
+-- Move client to screen edge, respecting the screen workarea
 function move_to_edge(c, direction)
     local workarea = awful.screen.focused().workarea
     if direction == "up" then
@@ -94,6 +130,7 @@ function move_to_edge(c, direction)
     end
 end
 
+-- Resize client (regardless if it is floating or not)
 -- Constants --
 local floating_resize_amount = dpi(20)
 local tiling_resize_factor= 0.05
@@ -122,10 +159,20 @@ function resize(c, direction)
     end
 end
 
--- Extras
+
+-----------------------------------------------------
+----------------  Extra Features  -------------------
+-----------------------------------------------------
 local icons = require("icons.icons")
-require("extras.exit_screen")
-require("extras.sidebar")
+require("archlabs-extras.exit_screen")
+require("archlabs-extras.sidebar")
+-- local app_drawer = require("archlabs-extras.app_drawer")
+
+-----------------------------------------------------
+-----------------   Notifications  ------------------
+-----------------------------------------------------
+-- TODO: some options are not respected when the notification is created
+-- through lib-notify. Naughty works as expected.
 
 -- Icon size
 naughty.config.defaults['icon_size'] = beautiful.notification_icon_size
@@ -140,7 +187,6 @@ naughty.config.defaults.padding = beautiful.notification_padding
 naughty.config.defaults.spacing = beautiful.notification_spacing
 naughty.config.defaults.margin = beautiful.notification_margin
 naughty.config.defaults.border_width = beautiful.notification_border_width
-
 -- Apply rounded rectangle shape
 beautiful.notification_shape = function(cr, width, height)
     gears.shape.rounded_rect(cr, width, height, beautiful.notification_border_radius)
@@ -177,6 +223,11 @@ naughty.config.presets.critical = {
     position     = beautiful.notification_position
 }
 
+-----------------------------------------------------
+----------------       Menu       -------------------
+-----------------------------------------------------
+-- Create a launcher widget and a main menu
+-- TODO terminal commands do not work with exo-open
 myawesomemenu = {
    { "Edit config", editor_cmd .. " " .. awesome.conffile },
    { "Restart", awesome.restart },
@@ -184,7 +235,6 @@ myawesomemenu = {
 }
 
 mymainmenu = awful.menu({ items = { { "Awesome", myawesomemenu, icons.archlabs },
-                                    { "Hotkeys", function() return false, hotkeys_popup.show_help end },
                                     { "Web Browser", web_browser },
                                     { "File Manager", file_manager },
                                     { "Settings", "xfce4-settings-manager" },
@@ -196,16 +246,232 @@ mymainmenu = awful.menu({ items = { { "Awesome", myawesomemenu, icons.archlabs }
 -- Menubar configuration
 menubar.utils.terminal = terminal -- Set the terminal for applications that require it
 
--- Widgets
-myclockwidget   = require("extras.textclock")
-myweatherwidget = require("extras.weather")
-myramwidget     = require("extras.ram")
-mybatterywidget = require("extras.battery")
-mytraywidget    = require("extras.systray")
+-----------------------------------------------------
+----------------       Wibar       ------------------
+-----------------------------------------------------
+-- Create a launcher
+-- mylauncher = awful.widget.launcher({ image = icons.archlabs,
+--                                      menu = mymainmenu })
+
+-- Create a keyboard map indicator and switcher
+-- mykeyboardlayout = awful.widget.keyboardlayout()
+
+-- Create a clock widget
+clock_text = wibox.widget {
+    clock_icon,
+    wibox.widget.textclock("%H:%M"),
+    layout = wibox.layout.align.horizontal
+}
+clock_icon = wibox.widget.textbox("")
+clock_icon.font = "Font Awesome 5 Free 9"
+clock_icon.align = "center"
+clock_icon.valign = "center"
+myclockwidget = wibox.widget{
+    {
+        {
+            clock_icon,
+            bg = beautiful.xcolor4,
+            shape = gears.shape.circle,
+            forced_width = dpi(22),
+            widget = wibox.container.background
+        },
+        {
+            clock_text,
+            -- Add margins to the top and bottom to force single line text
+            -- TODO might not be needed for the clock
+            -- top = dpi(3),
+            -- bottom = dpi(3),
+            -- Add padding to the right for aesthetic reasons
+            right = dpi(8),
+            -- Add padding to the left for spacing between the clock icon and the clock text
+            left = dpi(8),
+            widget = wibox.container.margin
+        },
+        spacing = dpi(10),
+        layout = wibox.layout.align.horizontal
+    },
+    -- forced_width = dpi(300),
+    bg = beautiful.xcolor0,
+    shape = gears.shape.rounded_bar,
+    widget = wibox.container.background
+}
+
+-- Create a network button
+network_icon = wibox.widget.textbox("")
+network_icon.font = "Font Awesome 5 Free 9"
+network_icon.align = "center"
+network_icon.valign = "center"
+mynetworkwidget = wibox.widget{
+    network_icon,
+    bg = beautiful.xcolor4,
+    shape = gears.shape.circle,
+    forced_width = dpi(22),
+    widget = wibox.container.background
+}
+mynetworkwidget:buttons(gears.table.join(
+                awful.button({ }, 1, function() awful.spawn.with_shell("networkmanager_dmenu") end)
+))
+add_clickable_effect(mynetworkwidget)
+
+-- Create the tray
+tray = wibox.widget.systray()
+tray.shape = gears.shape.rounded_bar
+-- tray.visible = false
+
+-- Create a widget that toggles the tray when clicked
+tray_icon = wibox.widget.textbox("")
+tray_icon.font = "Font Awesome 5 Free 9"
+tray_icon.align = "center"
+tray_icon.valign = "center"
+
+tray_container = wibox.container.background()
+
+mytraywidget = wibox.widget{
+    tray_icon,
+    shape = gears.shape.circle,
+    forced_width = dpi(22),
+    bg = beautiful.xcolor4,
+    widget = tray_container
+}
+
+local function toggle_tray()
+    tray.visible = not tray.visible
+    if tray.visible then
+        tray_container.bg = beautiful.xcolor4
+    else
+        tray_container.bg = beautiful.xcolor8
+    end
+end
+
+mytraywidget:buttons(
+  gears.table.join(
+    awful.button({ }, 1, function ()
+        toggle_tray()
+    end)
+))
+
+local mytraywidget_tooltip = awful.tooltip {
+    objects        = { mytraywidget },
+    timer_function = function()
+        return "Toggle tray"
+    end,
+}
 
 add_clickable_effect(mytraywidget)
+
+-- Initialize battery_icon according to power supply status (plugged or unplugged)
+awful.spawn.easy_async_with_shell("cat /sys/class/power_supply/*/online", function(out)
+    -- Remove trailing whitespaces
+    -- out = out:gsub('^%s*(.-)%s*$', '%1')
+    status = out:sub(1,1)
+    if status == "1" then
+        battery_icon.text = ""
+    else
+        battery_icon.text = ""
+    end
+end)
+
+-- Create an update button
+-- Requires pamac (a GUI for pacman) to be installed
+update_icon = wibox.widget.textbox("")
+update_icon.font = "Font Awesome 5 Free 9"
+update_icon.align = "center"
+update_icon.valign = "center"
+myupdatewidget = wibox.widget{
+    update_icon,
+    bg = beautiful.xcolor4,
+    shape = gears.shape.circle,
+    forced_width = dpi(22),
+    widget = wibox.container.background
+}
+myupdatewidget:buttons(gears.table.join(
+                awful.button({ }, 1, function()
+                    local matcher = function (c)
+                      return awful.rules.match(c, {class = 'Pamac-manager'})
+                    end
+                    awful.client.run_or_raise("pamac-manager", matcher)
+                end)
+))
+
+add_clickable_effect(myupdatewidget)
+
+-- Create a battey widget
+battery_text = require("archlabs-extras.battery")
+battery_text.valign = "center"
+battery_text.align = "center"
+
+battery_icon = wibox.widget.textbox()
+battery_icon.font = "Font Awesome 5 Free 9"
+battery_icon.align = "center"
+battery_icon.valign = "center"
+
+-- Initialize battery_icon according to power supply status (plugged or unplugged)
+awful.spawn.easy_async_with_shell("cat /sys/class/power_supply/*/online", function(out)
+    -- Remove trailing whitespaces
+    -- out = out:gsub('^%s*(.-)%s*$', '%1')
+    status = out:sub(1,1)
+    if status == "1" then
+        battery_icon.text = ""
+    else
+        battery_icon.text = ""
+    end
+end)
+
+-- Connect to charger signals in order to update battery_icon
+awesome.connect_signal(
+  "charger_plugged", function(c)
+    battery_icon.text = ""
+end)
+awesome.connect_signal(
+  "charger_unplugged", function(c)
+    battery_icon.text = ""
+end)
+
+
+mybatterywidget = wibox.widget{
+    {
+        {
+            battery_icon,
+            bg = beautiful.xcolor4,
+            shape = gears.shape.circle,
+            forced_width = dpi(22),
+            widget = wibox.container.background
+        },
+        {
+            battery_text,
+            -- Add margins to the top and bottom to force single line text
+            -- TODO might not be needed for the battery
+            -- top = dpi(3),
+            -- bottom = dpi(3),
+            -- Add padding to the right for aesthetic reasons
+            right = dpi(8),
+            -- Add padding to the left for spacing between the battery icon and the battery text
+            left = dpi(8),
+            widget = wibox.container.margin
+        },
+        spacing = dpi(10),
+        layout = wibox.layout.align.horizontal
+    },
+    -- forced_width = dpi(300),
+    bg = beautiful.xcolor0,
+    shape = gears.shape.rounded_bar,
+    widget = wibox.container.background
+}
+
+mybatterywidget:buttons(
+  gears.table.join(
+    awful.button({ }, 1, function ()
+        local matcher = function (c)
+          return awful.rules.match(c, {class = 'Xfce4-power-manager-settings'})
+        end
+        awful.client.run_or_raise("xfce4-power-manager-settings", matcher)
+    end)
+))
 add_clickable_effect(mybatterywidget)
 
+
+
+-- Create a wibox for each screen and add it
 local taglist_buttons = gears.table.join(
                     awful.button({ }, 1, function(t)
                                               if t == t.screen.selected_tag then
@@ -225,6 +491,8 @@ local taglist_buttons = gears.table.join(
                                                   client.focus:toggle_tag(t)
                                               end
                                           end)
+                    -- awful.button({ }, 4, function(t) awful.tag.viewprev(t.screen) end),
+                    -- awful.button({ }, 5, function(t) awful.tag.viewnext(t.screen) end)
                 )
 
 local tasklist_buttons = gears.table.join(
@@ -259,8 +527,12 @@ local function set_wallpaper(s)
         if type(wallpaper) == "function" then
             wallpaper = wallpaper(s)
         end
+
+        -- AwesomeWM's native method to set the wallpaper
         -- gears.wallpaper.maximized(wallpaper, s, true)
-        awful.spawn.with_shell("feh --bg-fill " .. beautiful.wallpaper)
+
+        -- Set the wallpaper using feh
+        awful.spawn.with_shell("feh --bg-fill "..beautiful.wallpaper)
     end
 end
 
@@ -273,6 +545,7 @@ end)
 awful.screen.connect_for_each_screen(function(s)
     -- Each screen has its own tag table.
     awful.tag({" 1 ", " 2 ", " 3 ", " 4 ", " 5 ", " 6 ", " 7 ", " 8 ", " 9 "}, s, awful.layout.layouts[1])
+    -- awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
 
     -- Create a promptbox for each screen
     s.mypromptbox = awful.widget.prompt()
@@ -280,18 +553,27 @@ awful.screen.connect_for_each_screen(function(s)
     s.mypromptbox.font = "sans 11"
 
     -- Create a searchbar widget
-    search_icon = wibox.widget.textbox("")
+    search_icon = wibox.widget.textbox("")
     search_icon.font = "Font Awesome 5 Free 9"
     search_icon.align = "center"
     search_icon.valign = "center"
     s.mysearchwidget = wibox.widget{
         {
-	    search_icon,
+            {
+                search_icon,
+                bg = beautiful.xcolor4,
+                shape = gears.shape.circle,
+                forced_width = dpi(24),
+                widget = wibox.container.background
+            },
             {
                 s.mypromptbox,
+                -- Add margins to the top and bottom to force single line text
                 top = dpi(3),
                 bottom = dpi(3),
+                -- Add padding to the right for aesthetic reasons
                 right = dpi(5),
+                -- Add padding to the left for spacing between the search icon and the prompt
                 left = dpi(5),
                 widget = wibox.container.margin
             },
@@ -299,6 +581,8 @@ awful.screen.connect_for_each_screen(function(s)
             layout = wibox.layout.align.horizontal
         },
         forced_width = dpi(300),
+        bg = beautiful.xcolor0,
+        shape = gears.shape.rounded_bar,
         widget = wibox.container.background
     }
 
@@ -326,6 +610,7 @@ awful.screen.connect_for_each_screen(function(s)
                         end)
     ))
 
+
     -- Add tooltip to search bar
     local mysearchwidget_tooltip = awful.tooltip {
         objects        = { s.mysearchwidget },
@@ -334,13 +619,48 @@ awful.screen.connect_for_each_screen(function(s)
         end,
     }
 
+    -- TODO throws error for some reason
+    -- add_clickable_effect(mysearchwidget)
+
+    -- Create an imagebox widget which will contain an icon indicating which layout we're using.
+    -- We need one layoutbox per screen.
+    s.mylayoutbox = awful.widget.layoutbox(s)
+    -- TODO this does not work. Images are too big for the circle
+    s.mylayoutbox.forced_width = dpi(10)
+    s.mylayoutbox.forced_height = dpi(10)
+
+    -- Create a container for the layoutbox
+    s.mylayoutwidget = wibox.widget{
+        s.mylayoutbox,
+        bg = beautiful.xcolor4,
+        shape = gears.shape.circle,
+        forced_width = dpi(22),
+        widget = wibox.container.background
+    }
+    s.mylayoutwidget:buttons(gears.table.join(
+                           awful.button({ }, 1, function () awful.layout.inc( 1) end),
+                           awful.button({ }, 3, function () awful.layout.inc(-1) end),
+                           awful.button({ }, 4, function () awful.layout.inc( 1) end),
+                           awful.button({ }, 5, function () awful.layout.inc(-1) end)))
+    add_clickable_effect(s.mylayoutwidget)
+
+
     -- Create a taglist widget
     s.mytaglist = awful.widget.taglist {
         screen  = s,
+        -- Show only non empty tags
+        -- filter  = awful.widget.taglist.filter.noempty,
+        -- Show all tags, even empty ones
         filter  = awful.widget.taglist.filter.all,
         buttons = taglist_buttons,
         layout   = {
             spacing = dpi(0),
+            -- spacing_widget = {
+            --     color  = beautiful.xcolor8,
+            --     shape  = gears.shape.circle,
+            --     widget = wibox.widget.separator,
+            -- },
+            --
             layout  = wibox.layout.fixed.horizontal
         },
     }
@@ -398,7 +718,7 @@ awful.screen.connect_for_each_screen(function(s)
     }
 
     -- Create the top bar
-    s.mytopwibox = awful.wibar({ position = "top", bg = beautiful.xbackground, height = dpi(25), screen = s })
+    s.mytopwibox = awful.wibar({ position = "top", bg = beautiful.xbackground, height = dpi(35), screen = s })
 
     -- Add widgets to the top bar
     s.mytopwibox:setup {
@@ -407,30 +727,46 @@ awful.screen.connect_for_each_screen(function(s)
             expand = "none",
             { -- Left widgets
                 s.mysearchwidget,
+                -- TODO enable this
+                -- s.mylayoutwidget,
                 spacing = dpi(5),
                 layout = wibox.layout.fixed.horizontal
             },
             { -- Middle widgets
-		s.mytaglist,
+                {
+                    s.mytaglist,
+                    -- Add margins to the taglist for aesthetic reasons
+                    -- left = dpi(4),
+                    -- right = dpi(4),
+                    widget = wibox.container.margin
+                },
+                bg = beautiful.taglist_bg,
+                shape = gears.shape.rounded_bar,
                 widget = wibox.container.background
             },
             { -- Right widgets
                 layout = wibox.layout.fixed.horizontal,
-                spacing = dpi(8),
+                spacing = dpi(5),
+                -- mykeyboardlayout,
                 tray,
                 mytraywidget,
                 mybatterywidget,
-		myramwidget,
-		myweatherwidget,
-                myclockwidget
+                myupdatewidget,
+                mynetworkwidget,
+                myclockwidget,
             },
         },
         margins = dpi(5),
+        -- top = dpi(5),
+        -- bottom = dpi(5),
+        -- left = dpi(10),
+        -- right = dpi(10),
+        -- color = beautiful.xcolor5,
         widget = wibox.container.margin,
     }
 
     -- Create the bottom bar
-    s.mybottomwibox = awful.wibar({ position = "bottom", bg = beautiful.xbackground, height = dpi(25), screen = s })
+    s.mybottomwibox = awful.wibar({ position = "bottom", bg = beautiful.xbackground, height = dpi(35), screen = s })
 
     -- Add widgets to the bottom bar
     s.mybottomwibox:setup {
@@ -440,6 +776,7 @@ awful.screen.connect_for_each_screen(function(s)
         },
         { -- Middle widget
             s.mytasklist,
+            -- Add top and bottom margins to force text to one line
             top = dpi(2),
             bottom = dpi(2),
             widget = wibox.container.margin,
@@ -451,6 +788,10 @@ awful.screen.connect_for_each_screen(function(s)
 
 end)
 
+
+-----------------------------------------------------
+---------------   Mouse bindings   ------------------
+-----------------------------------------------------
 root.buttons(gears.table.join(
     awful.button({ }, 1, function () mymainmenu:hide() end),
     awful.button({ }, 2, function () awful.spawn.with_shell("rofi_run -w") end),
@@ -459,6 +800,10 @@ root.buttons(gears.table.join(
     awful.button({ }, 5, awful.tag.viewnext)
 ))
 
+
+-----------------------------------------------------
+--------------  Global Key bindings   ---------------
+-----------------------------------------------------
 globalkeys = gears.table.join(
     awful.key({ modkey,           }, "F1",      hotkeys_popup.show_help,
               {description="show help", group="awesome"}),
@@ -479,13 +824,25 @@ globalkeys = gears.table.join(
     ),
 
     -- Focus by index
-    awful.key({ modkey, }, "j",
+    awful.key({ modkey,           }, "Tab",
         function ()
             awful.client.focus.byidx( 1)
         end,
         {description = "focus next by index", group = "client"}
     ),
-    awful.key({ modkey, }, "k",
+    awful.key({ modkey, "Shift"   }, "Tab",
+        function ()
+            awful.client.focus.byidx(-1)
+        end,
+        {description = "focus previous by index", group = "client"}
+    ),
+    awful.key({ modkey,           }, "j",
+        function ()
+            awful.client.focus.byidx( 1)
+        end,
+        {description = "focus next by index", group = "client"}
+    ),
+    awful.key({ modkey,           }, "k",
         function ()
             awful.client.focus.byidx(-1)
         end,
@@ -530,10 +887,11 @@ globalkeys = gears.table.join(
     awful.key({ "Control",           }, "space", function () naughty.destroy_all_notifications() end,
               {description = "dismiss notifications", group = "awesome"}),
     awful.key({  }, "Print", function ()
-        awful.spawn("scrot '%S.png' -e 'mv $f $$(xdg-user-dir PICTURES)/Screenshots/ArchLabs-%S-$wx$h.png'")
+        awful.spawn("scrot '%S.png' -e 'mv $f $$(xdg-user-dir PICTURES)/ArchLabs-%S-$wx$h.png ; feh --scale-down -B black $$(xdg-user-dir PICTURES)/ArchLabs-%S-$wx$h.png'")
         naughty.notify({ text = "Screenshot taken", icon = icons.camera })
     end,
               {description = "take screenshot", group = "launcher"}),
+    -- Audio TODO CHECK IF WORKS OUT OF VM
     awful.key({  }, "XF86AudioPlay", function () awful.spawn.with_shell("playerctl play-pause") end,
               {description = "audio player toggle", group = "audio"}),
     awful.key({  }, "XF86AudioNext", function () awful.spawn.with_shell("playerctl next") end,
@@ -548,12 +906,15 @@ globalkeys = gears.table.join(
               {description = "audio raise", group = "audio"}),
     awful.key({  }, "XF86AudioLowerVolume", function () awful.spawn.with_shell("pamixer -d 2") end,
               {description = "audio lower", group = "audio"}),
+    -- Brightness TODO CHECK IF WORKS OUT OF VM
     awful.key({  }, "XF86MonBrightnessUp", function () awful.spawn.with_shell("xbacklight -inc 10") end,
               {description = "increase brightness", group = "brightness"}),
     awful.key({  }, "XF86MonBrightnessDown", function () awful.spawn.with_shell("xbacklight -dec 10") end,
               {description = "decrease brightness", group = "brightness"}),
     -- Awesome
     awful.key({ modkey, "Control" }, "r", awesome.restart,
+              {description = "reload awesome", group = "awesome"}),
+    awful.key({ modkey, "Shift" }, "r", awesome.restart,
               {description = "reload awesome", group = "awesome"}),
     -- Exit screen
     awful.key({ modkey, "Shift" }, "x", function() exit_screen_show() end,
@@ -638,6 +999,9 @@ globalkeys = gears.table.join(
               {description = "rofi launcher", group = "launcher"})
 )
 
+-----------------------------------------------------
+--------------  Client Key bindings   ---------------
+-----------------------------------------------------
 clientkeys = gears.table.join(
     -- Focus client by direction (arrow keys)
     awful.key({ modkey }, "Down",
@@ -665,14 +1029,14 @@ clientkeys = gears.table.join(
         end,
         {description = "focus right", group = "client"}),
 
-    -- Relative move floating client (vim keys)
-    awful.key({ modkey, "Control", "Shift"   }, "j",  function (c) c:relative_move(  0,  dpi(40),   0,   0) end,
+    -- Relative move floating client (arrow keys)
+    awful.key({ modkey, "Control", "Shift"   }, "Down",   function (c) c:relative_move(  0,  dpi(40),   0,   0) end,
         {description =  "relative move", group = "client"}),
-    awful.key({ modkey, "Control", "Shift"   }, "k",  function (c) c:relative_move(  0, -dpi(40),   0,   0) end,
+    awful.key({ modkey, "Control", "Shift"   }, "Up",     function (c) c:relative_move(  0, -dpi(40),   0,   0) end,
         {description =  "relative move", group = "client"}),
-    awful.key({ modkey, "Control", "Shift"   }, "h",  function (c) c:relative_move(-dpi(40),   0,   0,   0) end,
+    awful.key({ modkey, "Control", "Shift"   }, "Left",   function (c) c:relative_move(-dpi(40),   0,   0,   0) end,
         {description =  "relative move", group = "client"}),
-    awful.key({ modkey, "Control", "Shift"   }, "l",  function (c) c:relative_move( dpi(40),   0,   0,   0) end,
+    awful.key({ modkey, "Control", "Shift"   }, "Right",  function (c) c:relative_move( dpi(40),   0,   0,   0) end,
         {description = "relative move", group = "client"}),
 
     -- Resize client (arrow keys)
@@ -754,6 +1118,8 @@ clientkeys = gears.table.join(
 
     -- Close client
     awful.key({ modkey, "Shift"   }, "q",      function (c) c:kill() end,
+              {description = "close", group = "client"}),
+    awful.key({ "Mod1",           }, "F4",      function (c) c:kill() end,
               {description = "close", group = "client"}),
 
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle,
@@ -866,6 +1232,10 @@ clientbuttons = gears.table.join(
 -- Set keys
 root.keys(globalkeys)
 
+
+-----------------------------------------------------
+------------------      Rules      ------------------
+-----------------------------------------------------
 -- Rules to apply to new clients (through the "manage" signal).
 awful.rules.rules = {
     -- All clients will match this rule.
@@ -893,6 +1263,13 @@ awful.rules.rules = {
           "Xfce4-power-manager-settings",
           "Arandr",
           "Blueman-manager",
+          "Gpick",
+          "Kruler",
+          "MessageWin",  -- kalarm.
+          "Sxiv",
+          "Tor Browser", -- Needs a fixed window size to avoid fingerprinting by screen size.
+          "Wpa_gui",
+          "veromix",
           "Lxappearance",
           "Pavucontrol",
           "Nm-connection-editor",
@@ -904,18 +1281,32 @@ awful.rules.rules = {
           "Event Tester",  -- xev.
         },
         role = {
+          "AlarmWindow",  -- Thunderbird's calendar.
+          "ConfigManager",  -- Thunderbird's about:config.
           "pop-up",       -- e.g. Google Chrome's (detached) Developer Tools.
           "GtkFileChooserDialog",
           "conversation",
         }
       }, properties = { floating = true }},
 
+    -- Add titlebars to normal clients and dialogs
+    { rule_any = {type = { "normal", "dialog" }
+      }, properties = { titlebars_enabled = true }
+    },
+
     -- Dialogs are always centered, floating and ontop
     { rule_any = {type = { "dialog" }
       }, properties = { placement = awful.placement.centered, floating = true, ontop = true }
     },
+
+    -- Set Firefox to always map on the tag named "2" on screen 1.
+    -- { rule = { class = "Firefox" },
+    --   properties = { screen = 1, tag = "2" } },
 }
 
+-----------------------------------------------------
+------------------     Signals     ------------------
+-----------------------------------------------------
 -- Signal function to execute when a new client appears.
 client.connect_signal("manage", function (c)
     -- Set the windows at the slave,
@@ -1017,16 +1408,80 @@ awful.spawn.easy_async_with_shell("ps x | grep \"inotifywait /sys/class/power_su
         stdout = function(line)
             -- All we need is the first character (remove trailing whitespace)
             status = line:sub(1,1)
+            -- You can connect to those signals (for notifications or updating
+            -- the power supply status of a battery widget)
+            -- TODO some laptops send these events every few seconds instead of only on charger plug/unplug
+            -- We could save the last status and check if it changed before emitting the signals in order to avoid sending notifications every few seconds
             if status == "1" then
                 awesome.emit_signal("charger_plugged")
             else
                 awesome.emit_signal("charger_unplugged")
             end
+            -- naughty.notify { title = "DEBUG", text = "Charger event: "..status }
         end
     })
 end)
 
-awful.spawn.with_shell("numlockx on")
+-- TODO charger status notifications
+
+-----------------------------------------------------
+---------------      Titlebars      -----------------
+-----------------------------------------------------
+-- Add a titlebar if titlebars_enabled is set to true in the rules.
+client.connect_signal("request::titlebars", function(c)
+    --------------   Titlebar bindings   ----------------
+    local buttons = gears.table.join(
+        awful.button({ }, 1, function()
+            c:emit_signal("request::activate", "titlebar", {raise = true})
+            awful.mouse.client.move(c)
+        end),
+        awful.button({ }, 2, function()
+            c:kill()
+        end),
+        awful.button({ }, 3, function()
+            c:emit_signal("request::activate", "titlebar", {raise = true})
+            awful.mouse.client.resize(c)
+        end)
+    )
+
+    --------------   Titlebar items   ----------------
+    awful.titlebar(c, { size = beautiful.titlebar_size }) : setup {
+        { -- Left
+            -- awful.titlebar.widget.iconwidget(c),
+            buttons = buttons,
+            layout  = wibox.layout.fixed.horizontal
+        },
+        { -- Middle
+            { -- Title
+                align  = "center",
+                widget = awful.titlebar.widget.titlewidget(c)
+            },
+            buttons = buttons,
+            layout  = wibox.layout.flex.horizontal
+        },
+        { -- Right
+            -- awful.titlebar.widget.floatingbutton (c),
+            -- awful.titlebar.widget.stickybutton   (c),
+            -- awful.titlebar.widget.ontopbutton    (c),
+            awful.titlebar.widget.minimizebutton(c),
+            awful.titlebar.widget.maximizedbutton(c),
+            awful.titlebar.widget.closebutton    (c),
+            layout = wibox.layout.fixed.horizontal()
+        },
+        layout = wibox.layout.align.horizontal
+    }
+end)
+
+
+-----------------------------------------------------
+---------------     Autostart      ------------------
+-----------------------------------------------------
+-- Run with reload
+-- awful.spawn.with_shell("nitrogen --restore")
+-- If you have a numpad you may want to enable this
+-- awful.spawn.with_shell("numlockx on")
+
+-- Check ~/.xprofile for autostarting applications once on login
 
 -----------------------------------------------------
 ----------  Aggresive Garbage Collection  -----------
