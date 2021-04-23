@@ -1,6 +1,7 @@
 local awful = require("awful")
 local gears = require("gears")
 local wibox = require("wibox")
+local naughty = require("naughty")
 local beautiful = require("beautiful")
 
 -- Configuration
@@ -8,6 +9,9 @@ local update_interval = 30            -- in seconds
 
 local battery_text = wibox.widget.textbox()
 local battery_stat = wibox.container.background(wibox.widget.textbox('Bat '))
+
+local peter = gears.filesystem.get_configuration_dir() .. "icons/peter.jpg"
+local notified = false
 
 local battery = wibox.widget{
   battery_stat,
@@ -20,8 +24,22 @@ local function update_widget(bat)
   battery_text.markup = perc .. "%"
   if stat:sub(1,1) == "C" then
     battery_stat.fg = beautiful.xcolor2 --green
+    notified = false
   elseif perc and tonumber(perc) <= 20 then
     battery_stat.fg = beautiful.xcolor1 --red
+    if not notified then
+      naughty.notify({
+	title     = "Battery low",
+	text      = "\nMr Stark, I don't feel so good",
+	position  = "top_middle",
+	font      = "sans 25",
+	fg        = beautiful.xcolor1,
+	icon      = peter,
+	icon_size = 300,
+	timeout   = 10
+      })
+      notified = true
+    end
   else
     battery_stat.fg = beautiful.xcolor8 --gray
   end
