@@ -4,10 +4,10 @@ local wibox = require("wibox")
 local beautiful = require("beautiful")
 
 -- Configuration
-local update_interval = 600            -- in seconds
+local update_interval = 120
 
 local weather_city = wibox.widget.textbox("Matsue ")
-local weather_text = wibox.widget.textbox()
+local weather_temp = wibox.widget.textbox()
 
 local weather = wibox.widget{
   {
@@ -15,12 +15,12 @@ local weather = wibox.widget{
     fg = beautiful.xcolor8, --gray
     widget = wibox.container.background
   },
-  weather_text,
+  weather_temp,
   layout = wibox.layout.fixed.horizontal
 }
 
 local function update_widget(temp)
-  weather_text.markup = temp
+  weather_temp.markup = temp
 end
 
 local weather_script = [[
@@ -29,10 +29,10 @@ local weather_script = [[
 "]]
 
 -- Update amount used
-awful.widget.watch(weather_script, update_interval, function(widget, stdout)
-    local temp = string.gsub(stdout, '^%s*(.-)%s*$', '%1')
-    temp = string.gsub(temp, '  ', ' ')
-    update_widget(temp)
+awful.widget.watch(weather_script, update_interval, function(widget, stdout, stderr, exitreason, exitcode)
+  local temp = exitcode == 0 and string.gsub(stdout, '^%s*(.-)%s*$', '%1') or "Loading..."
+  temp = string.gsub(temp, '  ', ' ')
+  update_widget(temp)
 end)
 
 return weather

@@ -49,7 +49,7 @@ local dpi = xresources.apply_dpi
 terminal = "exo-open --launch TerminalEmulator"
 web_browser = "exo-open --launch WebBrowser"
 file_manager = "exo-open --launch FileManager"
-editor = os.getenv("EDITOR") or "vim"
+editor = os.getenv("EDITOR") or "nvim"
 editor_cmd = "exo-open "
 web_search_cmd = "exo-open https://duckduckgo.com/?q="
 
@@ -125,7 +125,6 @@ end
 -- Extras
 local icons = require("icons.icons")
 require("extras.exit_screen")
-require("extras.sidebar")
 
 -- Icon size
 naughty.config.defaults['icon_size'] = beautiful.notification_icon_size
@@ -207,59 +206,50 @@ add_clickable_effect(mytraywidget)
 add_clickable_effect(mybatterywidget)
 
 local taglist_buttons = gears.table.join(
-                    awful.button({ }, 1, function(t)
-                                              if t == t.screen.selected_tag then
-                                                  awful.tag.history.restore()
-                                              else
-                                                  t:view_only()
-                                              end
-                                          end),
-                    awful.button({ modkey }, 1, awful.tag.viewtoggle),
-                    awful.button({ }, 3, function(t)
-                                              if client.focus then
-                                                  client.focus:move_to_tag(t)
-                                              end
-                                          end),
-                    awful.button({ modkey }, 3, function(t)
-                                              if client.focus then
-                                                  client.focus:toggle_tag(t)
-                                              end
-                                          end)
-                )
+  awful.button({ }, 1, function(t)
+			    if t == t.screen.selected_tag then
+				awful.tag.history.restore()
+			    else
+				t:view_only()
+			    end
+			end),
+  awful.button({ modkey }, 1, awful.tag.viewtoggle),
+  awful.button({ }, 3, function(t)
+			    if client.focus then
+				client.focus:move_to_tag(t)
+			    end
+			end),
+  awful.button({ modkey }, 3, function(t)
+			    if client.focus then
+				client.focus:toggle_tag(t)
+			    end
+			end)
+)
 
 local tasklist_buttons = gears.table.join(
-                     awful.button({ }, 1, function (c)
-                                              if c == client.focus then
-                                                  c.minimized = true
-                                              else
-                                                  c:emit_signal(
-                                                      "request::activate",
-                                                      "tasklist",
-                                                      {raise = true}
-                                                  )
-                                              end
-                                          end),
-                     awful.button({ }, 2, function (c)
-                                              c:kill()
-                                          end),
-                     awful.button({ }, 3, function()
-                                              awful.menu.client_list({ theme = { width = 250 } })
-                                          end),
-                     awful.button({ }, 4, function ()
-                                              awful.client.focus.byidx(-1)
-                                          end),
-                     awful.button({ }, 5, function ()
-                                              awful.client.focus.byidx(1)
-                                          end))
+  awful.button({ }, 1, function (c)
+			    if c == client.focus then
+				c.minimized = true
+			    else
+				c:emit_signal(
+				    "request::activate",
+				    "tasklist",
+				    {raise = true}
+				)
+			    end
+			end),
+  awful.button({ }, 2, function (c) c:kill() end),
+  awful.button({ }, 3, function() awful.menu.client_list({ theme = { width = 250 } }) end),
+  awful.button({ }, 4, function () awful.client.focus.byidx(-1)	end),
+  awful.button({ }, 5, function () awful.client.focus.byidx(1)  end)
+)
 -- Set wallpaper function
 local function set_wallpaper(s)
     if beautiful.wallpaper then
         local wallpaper = beautiful.wallpaper
-        -- If wallpaper is a function, call it with the screen
         if type(wallpaper) == "function" then
             wallpaper = wallpaper(s)
         end
-        -- gears.wallpaper.maximized(wallpaper, s, true)
         awful.spawn.with_shell("feh --no-fehbg --bg-fill " .. beautiful.wallpaper)
     end
 end
@@ -274,65 +264,11 @@ awful.screen.connect_for_each_screen(function(s)
     -- Each screen has its own tag table.
     awful.tag({" 1 ", " 2 ", " 3 ", " 4 ", " 5 ", " 6 ", " 7 ", " 8 ", " 9 "}, s, awful.layout.layouts[1])
 
-    -- Create a promptbox for each screen
-    s.mypromptbox = awful.widget.prompt()
-    s.mypromptbox.fg = beautiful.xcolor7
-    s.mypromptbox.font = "sans 10"
-
     -- Create a searchbar widget
-    search_icon = wibox.widget.textbox("")
-    search_icon.font = "Font Awesome 5 Free 9"
-    search_icon.align = "center"
-    search_icon.valign = "center"
-    s.mysearchwidget = wibox.widget{
-        {
-	    search_icon,
-            {
-                s.mypromptbox,
-                -- top = dpi(3),
-                -- bottom = dpi(3),
-                right = dpi(5),
-                left = dpi(5),
-                widget = wibox.container.margin
-            },
-            spacing = dpi(10),
-            layout = wibox.layout.align.horizontal
-        },
-        forced_width = dpi(300),
-        widget = wibox.container.background
-    }
-
-    s.mysearchwidget:buttons(gears.table.join(
-                        awful.button({ }, 1, function ()
-                            awful.prompt.run {
-                                prompt       = "<b>Run: </b>",
-                                textbox      = s.mypromptbox.widget,
-                                exe_callback = awful.spawn,
-                                completion_callback = awful.completion.shell,
-                                history_path = awful.util.get_cache_dir() .. "/history"
-                            }
-                        end),
-                        awful.button({ }, 3, function ()
-                            awful.prompt.run {
-                              prompt       = '<b>Web search: </b>',
-                              textbox      = s.mypromptbox.widget,
-                              history_path = awful.util.get_cache_dir() .. "/history_web",
-                              exe_callback = function(input)
-                                  if not input or #input == 0 then return end
-                                  awful.spawn(web_search_cmd.."\""..input.."\"")
-                                  naughty.notify { title = "Searching the web for", text = input, icon = icons.web_browser }
-                              end
-                            }
-                        end)
-    ))
-
-    -- Add tooltip to search bar
-    local mysearchwidget_tooltip = awful.tooltip {
-        objects        = { s.mysearchwidget },
-        timer_function = function()
-            return "Left Click or Mod+R: <b>Run</b>\nRight click or Mod+S: <b>Web Search</b>\nEscape: <b>Cancel</b>"
-        end,
-    }
+    s.search_icon = wibox.widget.textbox("")
+    s.search_icon.font = "Font Awesome 5 Free 9"
+    s.search_icon.align = "center"
+    s.search_icon.valign = "center"
 
     -- Create a taglist widget
     s.mytaglist = awful.widget.taglist {
@@ -406,7 +342,7 @@ awful.screen.connect_for_each_screen(function(s)
             layout = wibox.layout.align.horizontal,
             expand = "none",
             { -- Left widgets
-                s.mysearchwidget,
+                s.search_icon,
                 spacing = dpi(5),
                 layout = wibox.layout.fixed.horizontal
             },
@@ -492,10 +428,6 @@ globalkeys = gears.table.join(
         {description = "focus previous by index", group = "client"}
     ),
 
-    -- Toggle sidebar
-    awful.key({ modkey }, "grave", function() sidebar.visible = not sidebar.visible end,
-              {description = "show or hide sidebar", group = "awesome"}),
-
     -- Main menu
     awful.key({ modkey, "Shift"  }, "w", function () mymainmenu:show() end,
               {description = "show main menu", group = "awesome"}),
@@ -523,8 +455,6 @@ globalkeys = gears.table.join(
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.spawn(terminal) end,
               {description = "open a terminal", group = "launcher"}),
-    awful.key({ modkey,           }, "f", function () awful.spawn(file_manager) end,
-              {description = "open file manager", group = "launcher"}),
     awful.key({ modkey,           }, "w", function () awful.spawn(web_browser) end,
               {description = "open web browser", group = "launcher"}),
     awful.key({ "Control",           }, "space", function () naughty.destroy_all_notifications() end,
@@ -556,8 +486,6 @@ globalkeys = gears.table.join(
     awful.key({ modkey, "Control" }, "r", awesome.restart,
               {description = "reload awesome", group = "awesome"}),
     -- Exit screen
-    awful.key({ modkey, "Shift" }, "x", function() exit_screen_show() end,
-              {description = "show exit screen", group = "awesome"}),
     awful.key({ modkey,           }, "Escape", function () exit_screen_show() end,
               {description = "show exit screen", group = "awesome"}),
 
@@ -589,45 +517,6 @@ globalkeys = gears.table.join(
                   end
               end,
               {description = "restore minimized", group = "client"}),
-
-    -- Prompts
-    awful.key({ modkey },            "r",     function ()
-        awful.prompt.run {
-            prompt       = "<b>Run: </b>",
-            textbox      = awful.screen.focused().mypromptbox.widget,
-            exe_callback = awful.spawn,
-            completion_callback = awful.completion.shell,
-            history_path = awful.util.get_cache_dir() .. "/history"
-        }
-    end,
-    {description = "run prompt", group = "prompts"}),
-
-    -- Lua execute prompt
-    awful.key({ modkey }, "x",
-              function ()
-                  awful.prompt.run {
-                    prompt       = "<b>Run Lua code: </b>",
-                    textbox      = awful.screen.focused().mypromptbox.widget,
-                    exe_callback = awful.util.eval,
-                    history_path = awful.util.get_cache_dir() .. "/history_eval"
-                  }
-              end,
-              {description = "lua execute prompt", group = "prompts"}),
-
-    -- Web search prompt
-    awful.key({ modkey }, "s",
-              function ()
-                  awful.prompt.run {
-                    prompt       = '<b>Web search: </b>',
-                    textbox      = awful.screen.focused().mypromptbox.widget,
-                    exe_callback = function(input)
-                        if not input or #input == 0 then return end
-                        awful.spawn(web_search_cmd.."\""..input.."\"")
-                        naughty.notify { title = "Searching the web for", text = input, icon = icons.web_browser }
-                    end
-                  }
-              end,
-              {description = "web search prompt", group = "prompts"}),
 
     -- Rofi
     awful.key({ modkey }, "d", function () awful.spawn("rofi_run -r") end,
@@ -745,7 +634,7 @@ clientkeys = gears.table.join(
         {description = "(floating) move to edge, (tiled) swap by direction", group = "client"}),
 
     -- Toggle fullscreen
-    awful.key({ modkey, "Shift"  }, "f",
+    awful.key({ modkey,          }, "f",
         function (c)
             c.fullscreen = not c.fullscreen
             c:raise()
@@ -896,7 +785,7 @@ awful.rules.rules = {
           "Lxappearance",
           "Pavucontrol",
           "Nm-connection-editor",
-          "xtightvncviewer"},
+	},
 
         -- Note that the name property shown in xprop might be set slightly after creation of the client
         -- and the name shown there might not match defined rules here.
@@ -1015,7 +904,6 @@ awful.spawn.easy_async_with_shell("ps x | grep \"inotifywait /sys/class/power_su
     -- Update charger status with each line printed
     awful.spawn.with_line_callback(charger_script, {
         stdout = function(line)
-            -- All we need is the first character (remove trailing whitespace)
             status = line:sub(1,1)
             if status == "1" then
                 awesome.emit_signal("charger_plugged")

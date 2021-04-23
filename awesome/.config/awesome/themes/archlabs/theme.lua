@@ -8,8 +8,8 @@ local themes_path = gfs.get_themes_dir()
 
 local theme = {}
 
-local wallpaper = "current.png"
-theme.wallpaper = gears.filesystem.get_configuration_dir() .. "wallpapers/" .. wallpaper
+local wallpaper = "bg.png"
+theme.wallpaper = gears.filesystem.get_configuration_dir() .. wallpaper
 
 -- Load ~/.Xresources colors and set fallback colors
 theme.xbackground = xrdb.background or "#1c2023"
