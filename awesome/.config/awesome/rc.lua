@@ -1,20 +1,13 @@
 pcall(require, "luarocks.loader")
 
--- Standard awesome library
 local gears = require("gears")
 local awful = require("awful")
--- local lain  = require("lain")
 require("awful.autofocus")
 
--- Widget and layout library
-local wibox = require("wibox")
-
--- Theme handling library
+local wibox     = require("wibox")
 local beautiful = require("beautiful")
-
--- Notification library
-local naughty = require("naughty")
-local menubar = require("menubar")
+local naughty   = require("naughty")
+local menubar   = require("menubar")
 local hotkeys_popup = require("awful.hotkeys_popup")
 
 -- Enable hotkeys help widget for VIM and other apps when client with a matching name is opened
@@ -28,17 +21,16 @@ end
 
 -- Handle runtime errors after startup
 do
-    local in_error = false
-    awesome.connect_signal("debug::error", function (err)
-        -- Make sure we don't go into an endless error loop
-        if in_error then return end
-        in_error = true
-
-        naughty.notify({ preset = naughty.config.presets.critical,
-                         title = "Oops, an error happened!",
-                         text = tostring(err) })
-        in_error = false
-    end)
+  local in_error = false
+  awesome.connect_signal("debug::error", function (err)
+    -- Make sure we don't go into an endless error loop
+    if in_error then return end
+    in_error = true
+    naughty.notify({ preset = naughty.config.presets.critical,
+		     title = "Oops, an error happened!",
+		     text = tostring(err) })
+    in_error = false
+  end)
 end
 
 local theme = "archlabs"
@@ -56,42 +48,29 @@ web_search_cmd = "exo-open https://duckduckgo.com/?q="
 modkey = "Mod4"
 
 awful.layout.layouts = {
-    awful.layout.suit.floating,
-    awful.layout.suit.tile,
-    awful.layout.suit.tile.left,
+  awful.layout.suit.floating,
+  awful.layout.suit.tile,
+  awful.layout.suit.tile.left,
 }
 
 -- Helpers functions
 function add_clickable_effect(w)
-    local original_cursor = "left_ptr"
-    local hover_cursor = "hand1"
+  local original_cursor = "left_ptr"
+  local hover_cursor = "hand1"
 
-    w:connect_signal("mouse::enter", function ()
-        local w = _G.mouse.current_wibox
-        if w then
-            w.cursor = hover_cursor
-        end
-    end)
-
-    w:connect_signal("mouse::leave", function ()
-        local w = _G.mouse.current_wibox
-        if w then
-            w.cursor = original_cursor
-        end
-    end)
-end
-
-function move_to_edge(c, direction)
-    local workarea = awful.screen.focused().workarea
-    if direction == "up" then
-        c:geometry({ nil, y = workarea.y + beautiful.useless_gap * 2, nil, nil })
-    elseif direction == "down" then
-        c:geometry({ nil, y = workarea.height + workarea.y - c:geometry().height - beautiful.useless_gap * 2 - beautiful.border_width * 2, nil, nil })
-    elseif direction == "left" then
-        c:geometry({ x = workarea.x + beautiful.useless_gap * 2, nil, nil, nil })
-    elseif direction == "right" then
-        c:geometry({ x = workarea.width + workarea.x - c:geometry().width - beautiful.useless_gap * 2 - beautiful.border_width * 2, nil, nil, nil })
+  w:connect_signal("mouse::enter", function ()
+    local w = _G.mouse.current_wibox
+    if w then
+      w.cursor = hover_cursor
     end
+  end)
+
+  w:connect_signal("mouse::leave", function ()
+    local w = _G.mouse.current_wibox
+    if w then
+      w.cursor = original_cursor
+    end
+  end)
 end
 
 -- Constants --
@@ -99,27 +78,27 @@ local floating_resize_amount = dpi(20)
 local tiling_resize_factor= 0.05
 ---------------
 function resize(c, direction)
-    if awful.layout.get(mouse.screen) == awful.layout.suit.floating or c.floating then
-        if direction == "up" then
-            c:relative_move(  0,  0, 0, -floating_resize_amount)
-        elseif direction == "down" then
-            c:relative_move(  0,  0, 0,  floating_resize_amount)
-        elseif direction == "left" then
-            c:relative_move(  0,  0, -floating_resize_amount, 0)
-        elseif direction == "right" then
-            c:relative_move(  0,  0,  floating_resize_amount, 0)
-        end
-    else
-        if direction == "up" then
-            awful.client.incwfact(-tiling_resize_factor)
-        elseif direction == "down" then
-            awful.client.incwfact( tiling_resize_factor)
-        elseif direction == "left" then
-            awful.tag.incmwfact(-tiling_resize_factor)
-        elseif direction == "right" then
-            awful.tag.incmwfact( tiling_resize_factor)
-        end
+  if awful.layout.get(mouse.screen) == awful.layout.suit.floating or c.floating then
+    if direction == "up" then
+      c:relative_move(  0,  0, 0, -floating_resize_amount)
+    elseif direction == "down" then
+      c:relative_move(  0,  0, 0,  floating_resize_amount)
+    elseif direction == "left" then
+      c:relative_move(  0,  0, -floating_resize_amount, 0)
+    elseif direction == "right" then
+      c:relative_move(  0,  0,  floating_resize_amount, 0)
     end
+  else
+    if direction == "up" then
+      awful.client.incwfact(-tiling_resize_factor)
+    elseif direction == "down" then
+      awful.client.incwfact( tiling_resize_factor)
+    elseif direction == "left" then
+      awful.tag.incmwfact(-tiling_resize_factor)
+    elseif direction == "right" then
+      awful.tag.incmwfact( tiling_resize_factor)
+    end
+  end
 end
 
 -- Extras
@@ -142,25 +121,25 @@ naughty.config.defaults.border_width = beautiful.notification_border_width
 
 -- Apply rounded rectangle shape
 beautiful.notification_shape = function(cr, width, height)
-    gears.shape.rounded_rect(cr, width, height, beautiful.notification_border_radius)
+  gears.shape.rounded_rect(cr, width, height, beautiful.notification_border_radius)
 end
 
 naughty.config.presets.normal = {
-    font         = beautiful.notification_font,
-    fg           = beautiful.notification_fg,
-    bg           = beautiful.notification_bg,
-    border_width = beautiful.notification_border_width,
-    margin       = beautiful.notification_margin,
-    position     = beautiful.notification_position
+  font         = beautiful.notification_font,
+  fg           = beautiful.notification_fg,
+  bg           = beautiful.notification_bg,
+  border_width = beautiful.notification_border_width,
+  margin       = beautiful.notification_margin,
+  position     = beautiful.notification_position
 }
 
 naughty.config.presets.low = {
-    font         = beautiful.notification_font,
-    fg           = beautiful.notification_fg,
-    bg           = beautiful.notification_bg,
-    border_width = beautiful.notification_border_width,
-    margin       = beautiful.notification_margin,
-    position     = beautiful.notification_position
+  font         = beautiful.notification_font,
+  fg           = beautiful.notification_fg,
+  bg           = beautiful.notification_bg,
+  border_width = beautiful.notification_border_width,
+  margin       = beautiful.notification_margin,
+  position     = beautiful.notification_position
 }
 
 naughty.config.presets.ok = naughty.config.presets.low
@@ -168,18 +147,18 @@ naughty.config.presets.info = naughty.config.presets.low
 naughty.config.presets.warn = naughty.config.presets.normal
 
 naughty.config.presets.critical = {
-    font         = beautiful.notification_font,
-    fg           = beautiful.notification_crit_fg,
-    bg           = beautiful.notification_crit_bg,
-    border_width = beautiful.notification_border_width,
-    margin       = beautiful.notification_margin,
-    position     = beautiful.notification_position
+  font         = beautiful.notification_font,
+  fg           = beautiful.notification_crit_fg,
+  bg           = beautiful.notification_crit_bg,
+  border_width = beautiful.notification_border_width,
+  margin       = beautiful.notification_margin,
+  position     = beautiful.notification_position
 }
 
 myawesomemenu = {
-   { "Edit config", editor_cmd .. " " .. awesome.conffile },
-   { "Restart", awesome.restart },
-   { "Quit", function() exit_screen_show() end },
+  { "Edit config", editor_cmd .. " " .. awesome.conffile },
+  { "Restart", awesome.restart },
+  { "Quit", function() exit_screen_show() end },
 }
 
 mymainmenu = awful.menu({ items = { { "Awesome", myawesomemenu, icons.archlabs },
@@ -227,17 +206,14 @@ local taglist_buttons = gears.table.join(
 )
 
 local tasklist_buttons = gears.table.join(
-  awful.button({ }, 1, function (c)
-			    if c == client.focus then
-				c.minimized = true
-			    else
-				c:emit_signal(
-				    "request::activate",
-				    "tasklist",
-				    {raise = true}
-				)
-			    end
-			end),
+  awful.button({ }, 1,
+    function (c)
+      if c == client.focus then
+	c.minimized = true
+      else
+	c:emit_signal( "request::activate", "tasklist", {raise = true} )
+      end
+    end),
   awful.button({ }, 2, function (c) c:kill() end),
   awful.button({ }, 3, function() awful.menu.client_list({ theme = { width = 250 } }) end),
   awful.button({ }, 4, function () awful.client.focus.byidx(-1)	end),
@@ -245,20 +221,18 @@ local tasklist_buttons = gears.table.join(
 )
 -- Set wallpaper function
 local function set_wallpaper(s)
-    if beautiful.wallpaper then
-        local wallpaper = beautiful.wallpaper
-        if type(wallpaper) == "function" then
-            wallpaper = wallpaper(s)
-        end
-        awful.spawn.with_shell("feh --no-fehbg --bg-fill " .. beautiful.wallpaper)
+  if beautiful.wallpaper then
+    local wallpaper = beautiful.wallpaper
+    if type(wallpaper) == "function" then
+      wallpaper = wallpaper(s)
     end
+    awful.spawn.with_shell("feh --no-fehbg --bg-fill " .. beautiful.wallpaper)
+  end
 end
 
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
 screen.connect_signal("property::geometry", set_wallpaper)
-awful.screen.connect_for_each_screen(function(s)
-    set_wallpaper(s)
-end)
+awful.screen.connect_for_each_screen(function(s) set_wallpaper(s) end)
 
 awful.screen.connect_for_each_screen(function(s)
     -- Each screen has its own tag table.
@@ -398,10 +372,6 @@ root.buttons(gears.table.join(
 globalkeys = gears.table.join(
     awful.key({ modkey,           }, "F1",      hotkeys_popup.show_help,
               {description="show help", group="awesome"}),
-    awful.key({ "Mod4", "Mod1" }, "Left",   awful.tag.viewprev,
-              {description = "view previous", group = "tag"}),
-    awful.key({ "Mod4", "Mod1" }, "Right",  awful.tag.viewnext,
-              {description = "view next", group = "tag"}),
     awful.key({ modkey, "Shift" }, "b", awful.tag.history.restore,
               {description = "go back", group = "tag"}),
     awful.key({ modkey,         }, "b",
@@ -445,10 +415,6 @@ globalkeys = gears.table.join(
               {description = "swap with next client by index", group = "client"}),
     awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1)    end,
               {description = "swap with previous client by index", group = "client"}),
-    awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end,
-              {description = "focus the next screen", group = "screen"}),
-    awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end,
-              {description = "focus the previous screen", group = "screen"}),
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto,
               {description = "jump to urgent client", group = "client"}),
 
@@ -464,6 +430,11 @@ globalkeys = gears.table.join(
         naughty.notify({ text = "Screenshot taken", icon = icons.camera })
     end,
               {description = "take screenshot", group = "launcher"}),
+    awful.key({ "Shift", }, "Print", function ()
+        awful.spawn("scrot -s '%S.png' -e 'mv $f $$(xdg-user-dir PICTURES)/Screenshots/ArchLabs-%S-$wx$h.png'")
+        naughty.notify({ text = "Select region or window", icon = icons.camera })
+    end,
+              {description = "interactively take screenshot", group = "launcher"}),
     awful.key({  }, "XF86AudioPlay", function () awful.spawn.with_shell("playerctl play-pause") end,
               {description = "audio player toggle", group = "audio"}),
     awful.key({  }, "XF86AudioNext", function () awful.spawn.with_shell("playerctl next") end,
@@ -554,98 +525,72 @@ clientkeys = gears.table.join(
         end,
         {description = "focus right", group = "client"}),
 
-    -- Relative move floating client (vim keys)
-    awful.key({ modkey, "Control", "Shift"   }, "j",  function (c) c:relative_move(  0,  dpi(40),   0,   0) end,
-        {description =  "relative move", group = "client"}),
-    awful.key({ modkey, "Control", "Shift"   }, "k",  function (c) c:relative_move(  0, -dpi(40),   0,   0) end,
-        {description =  "relative move", group = "client"}),
-    awful.key({ modkey, "Control", "Shift"   }, "h",  function (c) c:relative_move(-dpi(40),   0,   0,   0) end,
-        {description =  "relative move", group = "client"}),
-    awful.key({ modkey, "Control", "Shift"   }, "l",  function (c) c:relative_move( dpi(40),   0,   0,   0) end,
-        {description = "relative move", group = "client"}),
-
     -- Resize client (arrow keys)
     -- Check helper function "resize" if you need to tweak the resize amount
     awful.key({ modkey, "Control"  }, "Down",
-        function (c)
-            resize(c, "down")
-        end,
+        function (c) resize(c, "down")  end,
         {description = "resize downwards", group = "client"}),
     awful.key({ modkey, "Control"  }, "Up",
-        function (c)
-            resize(c, "up")
-        end,
+        function (c) resize(c, "up")    end,
         {description = "resize upwards", group = "client"}),
     awful.key({ modkey, "Control"  }, "Left",
-        function (c)
-            resize(c, "left")
-        end,
+        function (c) resize(c, "left")  end,
         {description = "resize to the left", group = "client"}),
     awful.key({ modkey, "Control"  }, "Right",
-        function (c)
-            resize(c, "right")
-        end,
+        function (c) resize(c, "right") end,
         {description = "resize to the right", group = "client"}),
 
     -- Move FLOATING client to edge or swap TILED client by direction (arrow keys)
     awful.key({ modkey, "Shift"  }, "Down",
-        function (c)
-            if awful.layout.get(mouse.screen) == awful.layout.suit.floating or c.floating then
-                -- Floating: move client to edge
-                move_to_edge(c, "down")
-            else
-                -- Tiled: Swap client by direction
-                awful.client.swap.bydirection("down", c, nil)
-            end
-        end,
-        {description = "(floating) move to edge, (tiled) swap by direction", group = "client"}),
+      function (c)
+	if awful.layout.get(mouse.screen) == awful.layout.suit.floating or c.floating then
+	  c:relative_move(0, dpi(40), 0, 0)
+	else
+	  awful.client.swap.bydirection("down", c, nil)
+	end
+      end,
+      {description = "(floating) move to edge, (tiled) swap by direction", group = "client"}),
     awful.key({ modkey, "Shift"  }, "Up",
-        function (c)
-            if awful.layout.get(mouse.screen) == awful.layout.suit.floating or c.floating then
-                -- Floating: move client to edge
-                move_to_edge(c, "up")
-            else
-                -- Tiled: Swap client by direction
-                awful.client.swap.bydirection("up", c, nil)
-            end
-        end,
-        {description = "(floating) move to edge, (tiled) swap by direction", group = "client"}),
+      function (c)
+	if awful.layout.get(mouse.screen) == awful.layout.suit.floating or c.floating then
+	  c:relative_move(0, -dpi(40), 0, 0)
+	else
+	  awful.client.swap.bydirection("up", c, nil)
+	end
+      end,
+      {description = "(floating) move to edge, (tiled) swap by direction", group = "client"}),
     awful.key({ modkey, "Shift"  }, "Left",
-        function (c)
-            if awful.layout.get(mouse.screen) == awful.layout.suit.floating or c.floating then
-                -- Floating: move client to edge
-                move_to_edge(c, "left")
-            else
-                -- Tiled: Swap client by direction
-                awful.client.swap.bydirection("left", c, nil)
-            end
-        end,
-        {description = "(floating) move to edge, (tiled) swap by direction", group = "client"}),
+      function (c)
+	if awful.layout.get(mouse.screen) == awful.layout.suit.floating or c.floating then
+	  c:relative_move(-dpi(40), 0, 0, 0)
+	else
+	  awful.client.swap.bydirection("left", c, nil)
+	end
+      end,
+      {description = "(floating) move to edge, (tiled) swap by direction", group = "client"}),
     awful.key({ modkey, "Shift"  }, "Right",
-        function (c)
-            if awful.layout.get(mouse.screen) == awful.layout.suit.floating or c.floating then
-                -- Floating: move client to edge
-                move_to_edge(c, "right")
-            else
-                -- Tiled: Swap client by direction
-                awful.client.swap.bydirection("right", c, nil)
-            end
-        end,
-        {description = "(floating) move to edge, (tiled) swap by direction", group = "client"}),
+      function (c)
+	if awful.layout.get(mouse.screen) == awful.layout.suit.floating or c.floating then
+	  c:relative_move(dpi(40), 0, 0, 0)
+	else
+	  awful.client.swap.bydirection("right", c, nil)
+	end
+      end,
+      {description = "(floating) move to edge, (tiled) swap by direction", group = "client"}),
 
     -- Toggle fullscreen
     awful.key({ modkey,          }, "f",
-        function (c)
-            c.fullscreen = not c.fullscreen
-            c:raise()
-        end,
-        {description = "toggle fullscreen", group = "client"}),
+      function (c)
+	c.fullscreen = not c.fullscreen
+	c:raise()
+      end,
+      {description = "toggle fullscreen", group = "client"}),
 
     -- Close client
-    awful.key({ modkey, "Shift"   }, "q",      function (c) c:kill() end,
+    awful.key({ modkey,           }, "q",      function (c) c:kill() end,
               {description = "close", group = "client"}),
 
-    awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle,
+    awful.key({ modkey,           }, "t",  awful.client.floating.toggle,
               {description = "toggle floating", group = "client"}),
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end,
               {description = "move to master", group = "client"}),
@@ -655,7 +600,7 @@ clientkeys = gears.table.join(
              end,
               {description = "center", group = "client"}),
 
-    awful.key({ modkey,           }, "t",      function (c) c.ontop = not c.ontop            end,
+    awful.key({ modkey, "Shift"   }, "t",      function (c) c.ontop = not c.ontop            end,
               {description = "toggle keep on top", group = "client"}),
     awful.key({ modkey,           }, "n",
         function (c)
