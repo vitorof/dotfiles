@@ -107,7 +107,7 @@ function! LaTeX()
   let header = getline('1')
   let engine = header =~ "\% .*" ? strpart(header, 2) : "pdflatex"
   let tex = expand("%:p")
-  let texdir = expand("%:p:h")
+  let dir = expand("%:p:h")
   let bib = getline('2') == "\% use bib" ? ",bib_engine='biber'" : ""
 
   let cmd = join([
@@ -132,12 +132,12 @@ function! LaTeX()
 	let err = system("grep -A 1 '^!' " . log)
 	echo err
       else
-	echo "No log file " log " found!\n" out
+	echo "No log file " log " found!"
       endif
     endif
   endfunction
 
-  let job = jobstart("cd " . texdir . " && " . cmd, { 'on_exit': function('s:HandleOutput') })
+  let job = jobstart("cd " . dir . " && " . cmd, { 'on_exit': function('s:HandleOutput') })
 
   return 0
 endfunction
