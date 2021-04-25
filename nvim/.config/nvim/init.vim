@@ -19,13 +19,14 @@ call which_key#register('<Space>', "g:which_key_map")
 """ Colors
 if has('termguicolors') | set termguicolors | endif
 let g:tokyonight_style = 'night'
-" let g:tokyonight_transparent_background = 1
+let g:tokyonight_transparent_background = 1
 colorscheme tokyonight
-" highlight Normal      ctermbg=NONE guibg=NONE
-" highlight NonText     ctermbg=NONE guibg=NONE
-" highlight EndOfBuffer ctermbg=NONE guibg=NONE
-" highlight SignColumn  ctermbg=NONE guibg=NONE
-" highlight LineNr      ctermbg=NONE guibg=NONE
+highlight! Normal      ctermbg=NONE guibg=NONE
+highlight! NonText     ctermbg=NONE guibg=NONE
+highlight! EndOfBuffer ctermbg=NONE guibg=NONE
+highlight! SignColumn  ctermbg=NONE guibg=NONE
+highlight! LineNr      ctermbg=NONE guibg=NONE
+
 
 """ Startup page
 let g:startify_custom_header = startify#pad(split(system('tai ~/Pictures/mini-saborosa-crop.jpg'), '\n'))
@@ -102,40 +103,41 @@ let g:haskell_indent_case_alternative = 1
 let g:vimtex_compiler_enabled = 0
 
 "" Compilation ---------------------------------------------------
-function! LaTeX(engine,...)
-<<<<<<< HEAD
-  echo "Running" a:engine "\r"
-=======
-  echo "Running" a:engine
->>>>>>> 6acc5c7 (relampago marquinhos)
+function! LaTeX()
+  let header = getline('1')
+  let engine = header =~ "\% .*" ? strpart(header, 2) : "pdflatex"
+  let tex = expand("%:p")
+  let dir = expand("%:p:h")
+  let bib = getline('2') == "\% use bib" ? ",bib_engine='biber'" : ""
 
-  let tex = shellescape(expand("%:p"))
-  let dir = shellescape(expand("%:p:h"))
-  let log = shellescape(expand("%:p:r")) . ".log"
-
-  let bib = get(a:, 1, ", bib_engine='biber'")
   let cmd = join([
 	\ "Rscript -e \"tinytex::",
-	\ a:engine,
-	\ "(",
+	\ engine,
+	\ "('",
 	\ tex,
-	\ ", engine_args='-synctex=1'",
+	\ "',engine_args='-synctex=1'",
 	\ bib,
 	\ ")\""
 	\ ], "")
-  let out = system("cd " . dir . " && " . cmd)
 
-  if v:shell_error == 0
-    redraw
-    echo "File compiled successfully!"
-  else
-    if filereadable(log)
-      let err = system("grep -A 1 '^!' " . log)
-      echo err
+  echo "Running " . engine
+
+  function! s:HandleOutput(job_id, data, event)
+    if a:data == 0
+      redraw
+      echo "File compiled successfully!"
     else
-      echo "No log file " . log . " found!"
+      let log = expand("%:p:r") . ".log"
+      if filereadable(log)
+	let err = system("grep -A 1 '^!' " . log)
+	echo err
+      else
+	echo "No log file " log " found!\n" out
+      endif
     endif
-  endif
+  endfunction
+
+  let job = jobstart("cd " . dir . " && " . cmd, { 'on_exit': function('s:HandleOutput') })
 
   return 0
 endfunction
@@ -147,29 +149,16 @@ function! SyncTeXForward()
   if filereadable(pdf)
     exec "silent !zathura --synctex-forward " . line(".") . ":" . col(".") . ":%:p %:p:r.pdf &"
   else
-<<<<<<< HEAD
     echo "No pdf file found"
-  endif
-=======
-    echo "No pdf file found!"
   endif
 
   return 0
->>>>>>> 6acc5c7 (relampago marquinhos)
 endfunction
 "" ---------------------------------------------------------------
 
 augroup LaTeXuwu
   autocmd!
-  autocmd BufEnter *.tex if !filereadable('/tmp/nvim-latex') | :call serverstart('/tmp/nvim-latex') | else | echo "An nvim-latex socket already exists!" | endif
+  autocmd BufEnter *.tex if !filereadable('/tmp/nvim-latex') | :call serverstart('/tmp/nvim-latex') | endif
   autocmd FileType tex nnoremap <leader>f :call SyncTeXForward()<CR>
-
-  "" Compilation keybindings -------------------------------------
-  autocmd FileType tex nnoremap <leader>pP :w<CR>:call LaTeX("pdflatex","")<CR>
-  autocmd FileType tex nnoremap <leader>pL :w<CR>:call LaTeX("lualatex","")<CR>
-  autocmd FileType tex nnoremap <leader>pX :w<CR>:call LaTeX("xelatex","")<CR>
-  autocmd FileType tex nnoremap <leader>pp :w<CR>:call LaTeX("pdflatex")<CR>
-  autocmd FileType tex nnoremap <leader>pl :w<CR>:call LaTeX("lualatex")<CR>
-  autocmd FileType tex nnoremap <leader>px :w<CR>:call LaTeX("xelatex")<CR>
-  "" -------------------------------------------------------------
+  autocmd FileType tex nnoremap <leader>p :w<CR>:call LaTeX()<CR>
 augroup END
