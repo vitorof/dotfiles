@@ -1,5 +1,5 @@
 if [[ $- != *i* ]]; then
-	return
+  return
 fi
 
 # completion cache path setup
@@ -7,9 +7,9 @@ typeset -g comppath="$HOME/.cache"
 typeset -g compfile="$comppath/.zcompdump"
 
 if [[ -d "$comppath" ]]; then
-	[[ -w "$compfile" ]] || rm -rf "$compfile" >/dev/null 2>&1
+  [[ -w "$compfile" ]] || rm -rf "$compfile" >/dev/null 2>&1
 else
-	mkdir -p "$comppath"
+  mkdir -p "$comppath"
 fi
 
 # zsh internal stuff
@@ -28,30 +28,28 @@ alias ll='ls -lAh'
 alias grep='grep --color=auto'
 alias grub-update='sudo grub-mkconfig -o /boot/grub/grub.cfg'
 alias mirror-update='sudo reflector --verbose --score 100 -l 50 -f 10 --sort rate --save /etc/pacman.d/mirrorlist'
-alias doom='~/.config/emacs/bin/doom'
-alias svim='vim --servername VIM'
-alias vrc='vim ~/.config/vim/vimrc'
-alias nvrc='nvim ~/.config/nvim/init.vim'
+alias v='nvim'
+alias vrc='nvim ~/.config/nvim/init.vim'
 
 ls() # ls with preferred arguments
 {
-	command ls -1 --group-directories-first --color=auto "$@"
+  command ls -1 --group-directories-first --color=auto "$@"
 }
 # Group dot files first
 export LC_COLLATE=C
 
 cd() # cd and ls after
 {
-	builtin cd "$@" && command ls --color=auto -F
+  builtin cd "$@" && command ls --color=auto -F
 }
 
-srczsh() # recompile completion and reload zsh
+src() # recompile completion and reload zsh
 {
-	autoload -U zrecompile
-	rm -rf "$compfile"*
-	compinit -u -d "$compfile"
-	zrecompile -p "$compfile"
-	exec zsh
+  autoload -U zrecompile
+  rm -rf "$compfile"*
+  compinit -u -d "$compfile"
+  zrecompile -p "$compfile"
+  exec zsh
 }
 
 # less/manpager colours
@@ -98,7 +96,6 @@ setopt EXTENDED_GLOB
 setopt TRANSIENT_RPROMPT
 setopt INTERACTIVE_COMMENTS
 
-
 autoload -U compinit     # completion
 autoload -U terminfo     # terminfo keys
 zmodload -i zsh/complist # menu completion
@@ -110,26 +107,38 @@ autoload -U down-line-or-beginning-search; zle -N down-line-or-beginning-search
 
 # set the terminal mode when entering or exiting zle, otherwise terminfo keys are not loaded
 if (( ${+terminfo[smkx]} && ${+terminfo[rmkx]} )); then
-	zle-line-init() { echoti smkx; }; zle -N zle-line-init
-	zle-line-finish() { echoti rmkx; }; zle -N zle-line-finish
+  zle-line-init() { echoti smkx; }; zle -N zle-line-init
+  zle-line-finish() { echoti rmkx; }; zle -N zle-line-finish
 fi
 
 first_tab() # on first tab without any text it will list the current directory
 { # empty line tab lists
-	if [[ $#BUFFER == 0 ]]; then
-		BUFFER="cd " CURSOR=3
-		zle list-choices
-		BUFFER="" CURSOR=1
-	else
-		zle expand-or-complete
-	fi
+  if [[ $#BUFFER == 0 ]]; then
+    BUFFER="cd " CURSOR=3
+    zle list-choices
+    BUFFER="" CURSOR=1
+  else
+    zle expand-or-complete
+  fi
 }; zle -N first_tab
 
 exp_alias() # expand aliases to the left (if any) before inserting the key pressed
 { # expand aliases
-	zle _expand_alias
-	zle self-insert
+  zle _expand_alias
+  zle self-insert
 }; zle -N exp_alias
+
+# make ranger quit on current directory
+ran()
+{
+  tempfile="$(mktemp -t tmp.XXXXXX)"
+  ranger --choosedir="$tempfile" "${@:-$(pwd)}"
+  test -f "$tempfile" &&
+    if [ "$(cat -- "$tempfile")" != "$(echo -n `pwd`)" ]; then
+      cd -- "$(cat "$tempfile")"
+    fi
+  rm -f "$tempfile"
+}
 
 # bind keys not in terminfo
 bindkey -- '^I'   first_tab
@@ -140,8 +149,8 @@ bindkey -- '^E'   end-of-line
 bindkey -- '^A'   beginning-of-line
 bindkey -- '^[^M' self-insert-unmeta # alt-enter to insert a newline/carriage return
 bindkey -- '^K'   up-line-or-beginning-search
-# breaks doom emacs' terminal
-# bindkey -- '^J'   down-line-or-beginning-search
+# ctrl+j breaks doom emacs' vterm
+bindkey -- '^J'   down-line-or-beginning-search
 
 # default shell behaviour using terminfo keys
 [[ -n ${terminfo[kdch1]} ]] && bindkey -- "${terminfo[kdch1]}" delete-char                   # delete
@@ -220,9 +229,5 @@ compinit -u -d "$compfile"
 promptinit
 prompt adam1 black
 
-# OpenFOAM
-# source /opt/OpenFOAM/OpenFOAM-v2012/etc/bashrc
-
-# personal scripts
-PATH="$PATH:$HOME/scripts"
-export PATH="$PATH:$HOME/.cabal/bin"
+# personal scripts and haskell's cabal
+export PATH="$PATH:$HOME/.cabal/bin:$HOME/scripts"
