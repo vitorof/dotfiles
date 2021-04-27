@@ -2,6 +2,9 @@ if [[ $- != *i* ]]; then
   return
 fi
 
+# EVIL
+set -o vi
+
 # completion cache path setup
 typeset -g comppath="$HOME/.cache"
 typeset -g compfile="$comppath/.zcompdump"
@@ -65,9 +68,6 @@ export LESS_TERMCAP_md=$'\e[31m'
 export LESS_TERMCAP_so=$'\e[47;30m'
 export LESSPROMPT='?f%f .?ltLine %lt:?pt%pt\%:?btByte %bt:-...'
 
-# vim (uncomment to use vim instead of nvim)
-# export VIMINIT='let $MYVIMRC="$XDG_CONFIG_HOME/vim/vimrc" | source $MYVIMRC'
-
 # completion
 setopt CORRECT
 setopt NO_NOMATCH
@@ -128,19 +128,8 @@ exp_alias() # expand aliases to the left (if any) before inserting the key press
   zle self-insert
 }; zle -N exp_alias
 
-# make ranger quit on current directory
-ran()
-{
-  tempfile="$(mktemp -t tmp.XXXXXX)"
-  ranger --choosedir="$tempfile" "${@:-$(pwd)}"
-  test -f "$tempfile" &&
-    if [ "$(cat -- "$tempfile")" != "$(echo -n `pwd`)" ]; then
-      cd -- "$(cat "$tempfile")"
-    fi
-  rm -f "$tempfile"
-}
-
 # bind keys not in terminfo
+# ctrl+j breaks doom emacs' vterm
 bindkey -- '^I'   first_tab
 bindkey -- ' '    exp_alias
 bindkey -- '^P'   up-history
@@ -149,7 +138,6 @@ bindkey -- '^E'   end-of-line
 bindkey -- '^A'   beginning-of-line
 bindkey -- '^[^M' self-insert-unmeta # alt-enter to insert a newline/carriage return
 bindkey -- '^K'   up-line-or-beginning-search
-# ctrl+j breaks doom emacs' vterm
 bindkey -- '^J'   down-line-or-beginning-search
 
 # default shell behaviour using terminfo keys
@@ -224,6 +212,8 @@ ttyctl -f
 
 # initialize completion
 compinit -u -d "$compfile"
+# autocomplete dot files
+_comp_options+=(globdots)
 
 # initialize prompt with a decent built-in theme
 promptinit

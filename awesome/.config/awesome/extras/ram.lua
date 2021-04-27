@@ -26,7 +26,7 @@ end
 
 local mem_script = [[
     bash -c "
-    free -m | awk 'NR==2 {print $3}'
+    free -m | awk '/^Mem/ {print $3}'
 "]]
 
 -- Update amount used

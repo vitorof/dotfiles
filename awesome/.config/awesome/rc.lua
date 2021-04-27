@@ -14,9 +14,9 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 require("awful.hotkeys_popup.keys")
 
 if awesome.startup_errors then
-    naughty.notify({ preset = naughty.config.presets.critical,
-                     title = "Oops, there were errors during startup!",
-                     text = awesome.startup_errors })
+  naughty.notify({ preset = naughty.config.presets.critical,
+		   title = "Oops, there were errors during startup!",
+		   text = awesome.startup_errors })
 end
 
 -- Handle runtime errors after startup
@@ -239,10 +239,10 @@ awful.screen.connect_for_each_screen(function(s)
     awful.tag({" 1 ", " 2 ", " 3 ", " 4 ", " 5 ", " 6 ", " 7 ", " 8 ", " 9 "}, s, awful.layout.layouts[1])
 
     -- Create a searchbar widget
-    s.search_icon = wibox.widget.textbox("")
-    s.search_icon.font = "Font Awesome 5 Free 9"
-    s.search_icon.align = "center"
-    s.search_icon.valign = "center"
+    s.home_icon = wibox.widget.textbox("")
+    s.home_icon.font = "Font Awesome 5 Free 9"
+    s.home_icon.align = "center"
+    s.home_icon.valign = "center"
 
     -- Create a taglist widget
     s.mytaglist = awful.widget.taglist {
@@ -316,7 +316,7 @@ awful.screen.connect_for_each_screen(function(s)
             layout = wibox.layout.align.horizontal,
             expand = "none",
             { -- Left widgets
-                s.search_icon,
+                s.home_icon,
                 spacing = dpi(5),
                 layout = wibox.layout.fixed.horizontal
             },
@@ -426,12 +426,12 @@ globalkeys = gears.table.join(
     awful.key({ "Control",           }, "space", function () naughty.destroy_all_notifications() end,
               {description = "dismiss notifications", group = "awesome"}),
     awful.key({  }, "Print", function ()
-        awful.spawn("scrot '%S.png' -e 'mv $f $$(xdg-user-dir PICTURES)/Screenshots/ArchLabs-%S-$wx$h.png'")
+        awful.spawn("scrot '%S.png' -e 'mv $f $$HOME/pics/scrots/scrot-%S-$wx$h.png'")
         naughty.notify({ text = "Screenshot taken", icon = icons.camera })
     end,
               {description = "take screenshot", group = "launcher"}),
     awful.key({ "Shift", }, "Print", function ()
-        awful.spawn("scrot -s '%S.png' -e 'mv $f $$(xdg-user-dir PICTURES)/Screenshots/ArchLabs-%S-$wx$h.png'")
+        awful.spawn("scrot -s '%S.png' -e 'mv $f $$HOME/pics/scrots/scrot-%S-$wx$h.png'")
         naughty.notify({ text = "Select region or window", icon = icons.camera })
     end,
               {description = "interactively take screenshot", group = "launcher"}),
@@ -633,68 +633,68 @@ clientkeys = gears.table.join(
 -- Be careful: we use keycodes to make it work on any keyboard layout.
 -- This should map on the top row of your keyboard, usually 1 to 9.
 for i = 1, 9 do
-    globalkeys = gears.table.join(globalkeys,
-        -- View tag or go back to last tag if it is already selected
-        awful.key({ modkey }, "#" .. i + 9,
-                  function ()
-                        local screen = awful.screen.focused()
-                        local tag = screen.tags[i]
-                        if tag then
-                           if tag == screen.selected_tag then
-                               awful.tag.history.restore()
-                           else
-                               tag:view_only()
-                           end
-                        end
-                  end,
-                  {description = "view tag #"..i, group = "tag"}),
-        -- Toggle tag display.
-        awful.key({ modkey, "Control" }, "#" .. i + 9,
-                  function ()
-                      local screen = awful.screen.focused()
-                      local tag = screen.tags[i]
-                      if tag then
-                         awful.tag.viewtoggle(tag)
-                      end
-                  end,
-                  {description = "toggle tag #" .. i, group = "tag"}),
-        -- Move client to tag.
-        awful.key({ modkey, "Shift" }, "#" .. i + 9,
-                  function ()
-                      if client.focus then
-                          local tag = client.focus.screen.tags[i]
-                          if tag then
-                              client.focus:move_to_tag(tag)
-                          end
-                     end
-                  end,
-                  {description = "move focused client to tag #"..i, group = "tag"}),
-        -- Toggle tag on focused client.
-        awful.key({ modkey, "Control", "Shift" }, "#" .. i + 9,
-                  function ()
-                      if client.focus then
-                          local tag = client.focus.screen.tags[i]
-                          if tag then
-                              client.focus:toggle_tag(tag)
-                          end
-                      end
-                  end,
-                  {description = "toggle focused client on tag #" .. i, group = "tag"})
-    )
+  globalkeys = gears.table.join(globalkeys,
+    -- View tag or go back to last tag if it is already selected
+    awful.key({ modkey }, "#" .. i + 9,
+	      function ()
+		    local screen = awful.screen.focused()
+		    local tag = screen.tags[i]
+		    if tag then
+		       if tag == screen.selected_tag then
+			   awful.tag.history.restore()
+		       else
+			   tag:view_only()
+		       end
+		    end
+	      end,
+	      {description = "view tag #"..i, group = "tag"}),
+    -- Toggle tag display.
+    awful.key({ modkey, "Control" }, "#" .. i + 9,
+	      function ()
+		  local screen = awful.screen.focused()
+		  local tag = screen.tags[i]
+		  if tag then
+		     awful.tag.viewtoggle(tag)
+		  end
+	      end,
+	      {description = "toggle tag #" .. i, group = "tag"}),
+    -- Move client to tag.
+    awful.key({ modkey, "Shift" }, "#" .. i + 9,
+	      function ()
+		  if client.focus then
+		      local tag = client.focus.screen.tags[i]
+		      if tag then
+			  client.focus:move_to_tag(tag)
+		      end
+		 end
+	      end,
+	      {description = "move focused client to tag #"..i, group = "tag"}),
+    -- Toggle tag on focused client.
+    awful.key({ modkey, "Control", "Shift" }, "#" .. i + 9,
+	      function ()
+		  if client.focus then
+		      local tag = client.focus.screen.tags[i]
+		      if tag then
+			  client.focus:toggle_tag(tag)
+		      end
+		  end
+	      end,
+	      {description = "toggle focused client on tag #" .. i, group = "tag"})
+  )
 end
 
 clientbuttons = gears.table.join(
-    awful.button({ }, 1, function (c)
-        c:emit_signal("request::activate", "mouse_click", {raise = true})
-    end),
-    awful.button({ modkey }, 1, function (c)
-        c:emit_signal("request::activate", "mouse_click", {raise = true})
-        awful.mouse.client.move(c)
-    end),
-    awful.button({ modkey }, 3, function (c)
-        c:emit_signal("request::activate", "mouse_click", {raise = true})
-        awful.mouse.client.resize(c)
-    end)
+  awful.button({ }, 1, function (c)
+    c:emit_signal("request::activate", "mouse_click", {raise = true})
+  end),
+  awful.button({ modkey }, 1, function (c)
+    c:emit_signal("request::activate", "mouse_click", {raise = true})
+    awful.mouse.client.move(c)
+  end),
+  awful.button({ modkey }, 3, function (c)
+    c:emit_signal("request::activate", "mouse_click", {raise = true})
+    awful.mouse.client.resize(c)
+  end)
 )
 
 -- Set keys
@@ -702,71 +702,71 @@ root.keys(globalkeys)
 
 -- Rules to apply to new clients (through the "manage" signal).
 awful.rules.rules = {
-    -- All clients will match this rule.
-    { rule = { },
-      properties = { border_width = beautiful.border_width,
-                     border_color = beautiful.border_normal,
-                     focus = awful.client.focus.filter,
-                     raise = true,
-                     keys = clientkeys,
-                     buttons = clientbuttons,
-                     screen = awful.screen.preferred,
-                     size_hints_honor = false,
-                     placement = awful.placement.no_overlap+awful.placement.no_offscreen
-     }
-    },
+  -- All clients will match this rule.
+  { rule = { },
+    properties = { border_width = beautiful.border_width,
+		   border_color = beautiful.border_normal,
+		   focus = awful.client.focus.filter,
+		   raise = true,
+		   keys = clientkeys,
+		   buttons = clientbuttons,
+		   screen = awful.screen.preferred,
+		   size_hints_honor = false,
+		   placement = awful.placement.no_overlap+awful.placement.no_offscreen
+   }
+  },
 
-    -- Floating clients.
-    { rule_any = {
-        instance = {
-          "DTA",  -- Firefox addon DownThemAll.
-          "copyq",  -- Includes session name in class.
-          "pinentry",
-        },
-        class = {
-          "Xfce4-power-manager-settings",
-          "Arandr",
-          "Blueman-manager",
-          "Lxappearance",
-          "Pavucontrol",
-          "Nm-connection-editor",
-	},
+  -- Floating clients.
+  { rule_any = {
+      instance = {
+	"DTA",  -- Firefox addon DownThemAll.
+	"copyq",  -- Includes session name in class.
+	"pinentry",
+      },
+      class = {
+	"Xfce4-power-manager-settings",
+	"Arandr",
+	"Blueman-manager",
+	"Lxappearance",
+	"Pavucontrol",
+	"Nm-connection-editor",
+      },
 
-        -- Note that the name property shown in xprop might be set slightly after creation of the client
-        -- and the name shown there might not match defined rules here.
-        name = {
-          "Event Tester",  -- xev.
-        },
-        role = {
-          "pop-up",       -- e.g. Google Chrome's (detached) Developer Tools.
-          "GtkFileChooserDialog",
-          "conversation",
-        }
-      }, properties = { floating = true }},
+      -- Note that the name property shown in xprop might be set slightly after creation of the client
+      -- and the name shown there might not match defined rules here.
+      name = {
+	"Event Tester",  -- xev.
+      },
+      role = {
+	"pop-up",       -- e.g. Google Chrome's (detached) Developer Tools.
+	"GtkFileChooserDialog",
+	"conversation",
+      }
+    }, properties = { floating = true }},
 
-    -- Dialogs are always centered, floating and ontop
-    { rule_any = {type = { "dialog" }
-      }, properties = { placement = awful.placement.centered, floating = true, ontop = true }
-    },
+  -- Dialogs are always centered, floating and ontop
+  { rule_any = {type = { "dialog" }
+    }, properties = { placement = awful.placement.centered, floating = true, ontop = true }
+  },
 }
 
 -- Signal function to execute when a new client appears.
 client.connect_signal("manage", function (c)
-    -- Set the windows at the slave,
-    -- i.e. put it at the end of others instead of setting it master.
-    if not awesome.startup then awful.client.setslave(c) end
+  -- Set the windows at the slave,
+  -- i.e. put it at the end of others instead of setting it master.
+  if not awesome.startup then awful.client.setslave(c) end
 
-    if awesome.startup
-      and not c.size_hints.user_position
-      and not c.size_hints.program_position then
-        -- Prevent clients from being unreachable after screen count changes.
-        awful.placement.no_offscreen(c)
-    end
+  if awesome.startup
+    and not c.size_hints.user_position
+    and not c.size_hints.program_position then
+      -- Prevent clients from being unreachable after screen count changes.
+      awful.placement.no_offscreen(c)
+  end
 end)
 
 -- Enable sloppy focus, so that focus follows mouse.
 client.connect_signal("mouse::enter", function(c)
-    c:emit_signal("request::activate", "mouse_enter", {raise = false})
+  c:emit_signal("request::activate", "mouse_enter", {raise = false})
 end)
 
 -- Change border colors on focus/unfocus
@@ -775,91 +775,67 @@ client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_n
 
 -- Make rofi able to unminimize minimized clients
 client.connect_signal("request::activate", function(c, context, hints)
-    if not awesome.startup then
-        if c.minimized then
-            c.minimized = false
-        end
-        awful.ewmh.activate(c, context, hints)
+  if not awesome.startup then
+    if c.minimized then
+      c.minimized = false
     end
+    awful.ewmh.activate(c, context, hints)
+  end
 end)
 
 -- Center floating client if it is the only visible one or the layout is not floating
 client.connect_signal("manage", function (c)
-    if not awesome.startup then
-        if awful.layout.get(mouse.screen) ~= awful.layout.suit.floating then
-            awful.placement.centered(c,{honor_workarea=true})
-        else if #mouse.screen.clients == 1 then
-                awful.placement.centered(c,{honor_workarea=true})
-            end
-        end
+  if not awesome.startup then
+    if awful.layout.get(mouse.screen) ~= awful.layout.suit.floating then
+      awful.placement.centered(c,{honor_workarea=true})
+    elseif #mouse.screen.clients == 1 then
+      awful.placement.centered(c,{honor_workarea=true})
     end
+  end
 end)
 
 -- Remember and restore floating client geometry
 tag.connect_signal("property::layout", function(t)
-    for k, c in ipairs(t:clients()) do
-        if awful.layout.get(mouse.screen) == awful.layout.suit.floating then
-            c:geometry(awful.client.property.get(c, 'floating_geometry'))
-        end
+  for k, c in ipairs(t:clients()) do
+    if awful.layout.get(mouse.screen) == awful.layout.suit.floating then
+      c:geometry(awful.client.property.get(c, 'floating_geometry'))
     end
+  end
 end)
 client.connect_signal("manage", function(c)
-    if awful.layout.get(mouse.screen) == awful.layout.suit.floating then
-        awful.client.property.set(c, 'floating_geometry', c:geometry())
-    end
+  if awful.layout.get(mouse.screen) == awful.layout.suit.floating then
+    awful.client.property.set(c, 'floating_geometry', c:geometry())
+  end
 end)
 client.connect_signal("property::geometry", function(c)
-    if awful.layout.get(mouse.screen) == awful.layout.suit.floating then
-        awful.client.property.set(c, 'floating_geometry', c:geometry())
-    end
+  if awful.layout.get(mouse.screen) == awful.layout.suit.floating then
+    awful.client.property.set(c, 'floating_geometry', c:geometry())
+  end
 end)
 
 -- Rounded corners
 if beautiful.border_radius or beautiful.border_radius ~= 0 then
-    client.connect_signal("manage", function (c, startup)
-        if not c.fullscreen then
-            c.shape = function(cr, width, height)
-                gears.shape.rounded_rect(cr, width, height, beautiful.border_radius)
-            end
-        end
-    end)
+  client.connect_signal("manage", function (c, startup)
+    if not c.fullscreen then
+      c.shape = function(cr, width, height)
+	gears.shape.rounded_rect(cr, width, height, beautiful.border_radius)
+      end
+    end
+  end)
 
-    -- Fullscreen clients should not have rounded corners
-    client.connect_signal("property::fullscreen", function (c)
-        if c.fullscreen then
-            c.shape = function(cr, width, height)
-                gears.shape.rectangle(cr, width, height)
-            end
-        else
-            c.shape = function(cr, width, height)
-                gears.shape.rounded_rect(cr, width, height, beautiful.border_radius)
-            end
-        end
-    end)
-end
-
--- Subscribe to power supply status changes - Requires inotify-tools
-local charger_script = [[
-   bash -c "
-   while (inotifywait /sys/class/power_supply/*/online -qq) do cat /sys/class/power_supply/*/online; done
-"]]
-
--- Kill old inotifywait process
-awful.spawn.easy_async_with_shell("ps x | grep \"inotifywait /sys/class/power_supply\" | grep -v grep | awk '{print $1}' | xargs kill", function ()
-    -- Update charger status with each line printed
-    awful.spawn.with_line_callback(charger_script, {
-        stdout = function(line)
-            status = line:sub(1,1)
-            if status == "1" then
-                awesome.emit_signal("charger_plugged")
-            else
-                awesome.emit_signal("charger_unplugged")
-            end
-        end
-    })
+  -- Fullscreen clients should not have rounded corners
+  client.connect_signal("property::fullscreen", function (c)
+    if c.fullscreen then
+      c.shape = function(cr, width, height)
+	gears.shape.rectangle(cr, width, height)
+      end
+    else
+      c.shape = function(cr, width, height)
+	gears.shape.rounded_rect(cr, width, height, beautiful.border_radius)
+      end
+    end
 end)
-
-awful.spawn.with_shell("numlockx on")
+end
 
 -----------------------------------------------------
 ----------  Aggresive Garbage Collection  -----------

@@ -8,8 +8,9 @@ local themes_path = gfs.get_themes_dir()
 
 local theme = {}
 
-local wallpaper = "bg.png"
-theme.wallpaper = gears.filesystem.get_configuration_dir() .. wallpaper
+local configdir = gears.filesystem.get_configuration_dir()
+local wallpaper = gears.filesystem.file_readable(configdir .. "bg.png") and "bg.png" or "bg.jpg"
+theme.wallpaper = configdir .. wallpaper
 
 -- Load ~/.Xresources colors and set fallback colors
 theme.xbackground = xrdb.background or "#1c2023"
@@ -118,50 +119,14 @@ theme.tooltip_border_color = theme.xcolor0
 theme.tooltip_opacity = 1
 theme.tooltip_align = "left"
 
--- Sidebar
--- (Sidebar items can be customized in sidebar.lua)
-theme.sidebar_bg = theme.xbackground
-theme.sidebar_bg_alt = theme.xcolor0
-theme.sidebar_fg = theme.xcolor7
-theme.sidebar_opacity = 1
-theme.sidebar_position = "right" -- left or right
-theme.sidebar_width = dpi(330)
--- theme.sidebar_height =
-theme.sidebar_y = dpi(0)
-theme.sidebar_hide_on_mouse_leave = true
-theme.sidebar_show_on_mouse_edge = true
-
 -- Mpd song
 theme.mpd_song_title_color = theme.xcolor7
 theme.mpd_song_artist_color = theme.xcolor7
 theme.mpd_song_paused_color = theme.xcolor8
 
--- Volume bar
-theme.volume_bar_active_color = theme.xcolor4
-theme.volume_bar_active_background_color = theme.xcolor0
-theme.volume_bar_muted_color = theme.xcolor8
-theme.volume_bar_muted_background_color = theme.xcolor0
-
--- Temperature bar
-theme.temperature_bar_active_color = theme.xcolor4
-theme.temperature_bar_background_color = theme.xcolor0
-
--- Battery bar
-theme.battery_bar_active_color = theme.xcolor4
-theme.battery_bar_background_color = theme.xcolor0
-
--- CPU bar
-theme.cpu_bar_active_color = theme.xcolor4
-theme.cpu_bar_background_color = theme.xcolor0
-
--- RAM bar
-theme.ram_bar_active_color = theme.xcolor4
-theme.ram_bar_background_color = theme.xcolor0
-
-
 -- Menu
-theme.menu_bg_focus = theme.xcolor4
-theme.menu_fg_focus = theme.xcolor7
+theme.menu_bg_focus = theme.xbackground
+theme.menu_fg_focus = theme.xcolor4
 theme.menu_bg_normal = theme.xbackground
 theme.menu_fg_normal = theme.xcolor7
 theme.menu_submenu_icon = "~/.config/awesome/themes/archlabs/submenu.png"

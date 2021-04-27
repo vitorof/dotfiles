@@ -6,7 +6,7 @@ window:
     x: 5
     y: 5
   dynamic_padding: true
-# background_opacity: 0.8
+background_opacity: 0.9
 
 import:
   # - ~/.config/alacritty/themes/space-duck.yml

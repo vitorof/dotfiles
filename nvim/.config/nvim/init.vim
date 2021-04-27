@@ -18,21 +18,17 @@ call which_key#register('<Space>', "g:which_key_map")
 
 """ Colors
 if has('termguicolors') | set termguicolors | endif
+if has('syntax') | syntax on | endif
 let g:tokyonight_style = 'night'
 let g:tokyonight_transparent_background = 1
 colorscheme tokyonight
-highlight! Normal      ctermbg=NONE guibg=NONE
-highlight! NonText     ctermbg=NONE guibg=NONE
-highlight! EndOfBuffer ctermbg=NONE guibg=NONE
-highlight! SignColumn  ctermbg=NONE guibg=NONE
-highlight! LineNr      ctermbg=NONE guibg=NONE
-
 
 """ Startup page
 let g:startify_custom_header = startify#pad(split(system('tai ~/Pictures/mini-saborosa-crop.jpg'), '\n'))
 
 """ General settings
 filetype plugin on
+filetype indent off
 if has('mouse') | set mouse=a | endif
 set encoding=utf-8
 set nocompatible
@@ -51,7 +47,7 @@ map <Up> <Nop>
 map <Right> <Nop>
 
 """ Key-bindings
-let g:mapleader=" "
+let g:mapleader=' '
 
 xnoremap K :move '<-2<CR>gv-gv
 xnoremap J :move '>+1<CR>gv-gv
@@ -61,11 +57,11 @@ nnoremap L $
 nnoremap <leader>g :Goyo<CR><Esc>
 nnoremap <leader><leader> /<++><CR>:nohlsearch<CR>ca<
 
-nnoremap <leader>wh <C-w>h
-nnoremap <leader>wj <C-w>j
-nnoremap <leader>wk <C-w>k
-nnoremap <leader>wl <C-w>l
-nnoremap <leader>wc <C-w>c
+nnoremap <leader>h <C-w>h
+nnoremap <leader>j <C-w>j
+nnoremap <leader>k <C-w>k
+nnoremap <leader>l <C-w>l
+nnoremap <leader>q <C-w>c
 
 nnoremap <leader>b] :bnext <CR>
 nnoremap <leader>b[ :bprevious <CR>
@@ -77,16 +73,37 @@ augroup TrimOnSave
   autocmd BufWritePre * %s/\n\+\%$//e
 augroup END
 
+augroup ColorsUwu
+  autocmd!
+  autocmd BufEnter * highlight! CursorLineNr ctermbg=NONE guibg=NONE
+augroup END
+
 """ Which-key
-let g:which_key_map = {}
+let g:which_key_map = {
+    \ 'g' : 'toggle goyo',
+    \ 'h' : 'window-left',
+    \ 'j' : 'window-below',
+    \ 'k' : 'window-above',
+    \ 'l' : 'window-right',
+    \ 'q' : 'window-quit',
+    \ 'p' : 'preview',
+    \ ' ' : 'search and destroy'
+    \ }
+let g:which_key_map.b = {
+    \ 'name' : '+buffers',
+    \ ']' : 'next buffer',
+    \ '[' : 'prev buffer',
+    \ 'd' : 'delete buffer'
+    \ }
+
 nnoremap <silent> <leader> :<c-u>WhichKey '<Space>'<CR>
 vnoremap <silent> <leader> :<c-u>WhichKeyVisual '<Space>'<CR>
 
 """ Ultsnips
-let g:UltiSnipsExpandTrigger="<tab>"
-let g:UltiSnipsJumpForwardTrigger="<c-b>"
-let g:UltiSnipsJumpBackwardTrigger="<c-z>"
-let g:UltiSnipsEditSplit="vertical"
+let g:UltiSnipsExpandTrigger='<tab>'
+let g:UltiSnipsJumpForwardTrigger='<c-b>'
+let g:UltiSnipsJumpBackwardTrigger='<c-z>'
+let g:UltiSnipsEditSplit='vertical'
 highlight snipLeadingSpaces NONE
 
 """ Haskell
@@ -105,39 +122,40 @@ let g:vimtex_compiler_enabled = 0
 "" Compilation ---------------------------------------------------
 function! LaTeX()
   let header = getline('1')
-  let engine = header =~ "\% .*" ? strpart(header, 2) : "pdflatex"
-  let tex = expand("%:p")
-  let dir = expand("%:p:h")
-  let bib = getline('2') == "\% use bib" ? ",bib_engine='biber'" : ""
+  let engine = header =~ '\% .*' ? strpart(header, 2) : 'pdflatex'
+  let tex = expand('%:p')
+  let dir = expand('%:p:h')
+  let bib = getline('2') == '\% use bib' ? ",bib_engine='biber'" : ""
 
   let cmd = join([
-	\ "Rscript -e \"tinytex::",
+	\ 'Rscript -e "tinytex::',
 	\ engine,
 	\ "('",
 	\ tex,
 	\ "',engine_args='-synctex=1'",
 	\ bib,
-	\ ")\""
+	\ ')"'
 	\ ], "")
 
-  echo "Running " . engine
+  echo 'Running ' . engine
 
   function! s:HandleOutput(job_id, data, event)
     if a:data == 0
       redraw
-      echo "File compiled successfully!"
+      echo 'File compiled successfully!'
     else
-      let log = expand("%:p:r") . ".log"
+      let log = expand('%:p:r') . '.log'
       if filereadable(log)
 	let err = system("grep -A 1 '^!' " . log)
 	echo err
       else
-	echo "No log file " log " found!"
+	echo 'No log file ' log ' found!'
       endif
     endif
   endfunction
 
-  let job = jobstart("cd " . dir . " && " . cmd, { 'on_exit': function('s:HandleOutput') })
+  let job = jobstart('cd ' . dir . ' && ' . cmd,
+		  \ { 'on_exit': function('s:HandleOutput') })
 
   return 0
 endfunction
@@ -145,11 +163,11 @@ endfunction
 
 "" SyncTeX -------------------------------------------------------
 function! SyncTeXForward()
-  let pdf = expand("%:p:r") . ".pdf"
+  let pdf = expand('%:p:r') . '.pdf'
   if filereadable(pdf)
-    exec "silent !zathura --synctex-forward " . line(".") . ":" . col(".") . ":%:p %:p:r.pdf &"
+    exec 'silent !zathura --synctex-forward ' . line('.') . ':' . col('.') . ':%:p %:p:r.pdf &'
   else
-    echo "No pdf file found"
+    echo 'No pdf file found!'
   endif
 
   return 0
