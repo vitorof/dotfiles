@@ -87,6 +87,7 @@ let g:which_key_map = {
     \ 'l' : 'window-right',
     \ 'q' : 'window-quit',
     \ 'p' : 'preview',
+    \ 'P' : 'TinyTeX fix',
     \ ' ' : 'search and destroy'
     \ }
 let g:which_key_map.b = {
@@ -176,6 +177,7 @@ endfunction
 function! SyncTeXForward()
   let pdf = expand('%:p:r') . '.pdf'
   if filereadable(pdf)
+    echo 'Finding match in pdf'
     exec 'silent !zathura --synctex-forward ' . line('.') . ':' . col('.') . ':%:p %:p:r.pdf &'
   else
     echo 'No pdf file found!'
