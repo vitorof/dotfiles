@@ -6,7 +6,21 @@ window:
     x: 5
     y: 5
   dynamic_padding: true
+
 background_opacity: 0.9
+
+font:
+  normal:
+    family: Terminus
+    style: Regular
+  bold:
+    family: Terminus
+    style: Bold
+  italic:
+    family: Terminus
+    style: Italic
+  size: 12.0
+draw_bold_text_with_bright_colors: true
 
 import:
   # - ~/.config/alacritty/themes/space-duck.yml

@@ -55,6 +55,14 @@ src() # recompile completion and reload zsh
   exec zsh
 }
 
+ranger()
+{
+  local lastdir="$HOME/.cache/ranger/dirhist"
+  /usr/bin/ranger --choosedir="$lastdir" "$@"
+  builtin cd $(cat "$lastdir")
+  echo -n > "$lastdir"
+}
+
 # less/manpager colours
 export MANWIDTH=120
 export LESS='-R'

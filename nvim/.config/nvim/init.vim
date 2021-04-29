@@ -122,43 +122,54 @@ let g:vimtex_compiler_enabled = 0
 "" Compilation ---------------------------------------------------
 function! LaTeX()
   let header = getline('1')
-  let engine = header =~ '\% .*' ? strpart(header, 2) : 'pdflatex'
+  let engine = header =~ "\% .*" ? strpart(header, 2) : 'pdflatex'
   let tex = expand('%:p')
   let dir = expand('%:p:h')
-  let bib = getline('2') == '\% use bib' ? ",bib_engine='biber'" : ""
-
-  let cmd = join([
-	\ 'Rscript -e "tinytex::',
-	\ engine,
-	\ "('",
-	\ tex,
-	\ "',engine_args='-synctex=1'",
-	\ bib,
-	\ ')"'
-	\ ], "")
+  let bib = getline('2') == "\% use bib" ? ", bib_engine='biber'" : ""
+  let cmd = printf("Rscript -e \"tinytex::%s('%s', engine_args='-synctex=1' %s)\"", engine, tex, bib)
 
   echo 'Running ' . engine
 
   function! s:HandleOutput(job_id, data, event)
-    if a:data == 0
-      redraw
-      echo 'File compiled successfully!'
-    else
-      let log = expand('%:p:r') . '.log'
-      if filereadable(log)
-	let err = system("grep -A 1 '^!' " . log)
-	echo err
+    if a:event == 'exit'
+      if a:data == 0
+	redraw
+	echo 'File compiled successfully!'
       else
-	echo 'No log file ' log ' found!'
+	let log = expand('%:p:r') . '.log'
+	if filereadable(log)
+	  let err = system("grep -A 1 '^!' " . log)
+	  echo err
+	else
+	  echo 'No log file ' log ' found!'
+	endif
+      endif
+    elseif a:event == 'stdout'
+      let data = join(a:data)
+      if data =~ ".*install:.*"
+	echom printf("Installing package %s", split(data, " install: ")[1])
       endif
     endif
   endfunction
-
-  let job = jobstart('cd ' . dir . ' && ' . cmd,
-		  \ { 'on_exit': function('s:HandleOutput') })
+  let s:callbacks = { 'on_stdout': function('s:HandleOutput'), 'on_exit': function('s:HandleOutput') }
+  let job = jobstart('cd ' . dir . ' && ' . cmd, s:callbacks)
 
   return 0
 endfunction
+
+function! TinyTeXInstallMissing(pacs)
+  function! s:HandleOutputTT(job_id, data, event)
+    if a:data == 0
+      call LaTeX()
+    else
+      echo "Could not install missing packages"
+    endif
+  endfunction
+  echo "Installing missing packages" a:pacs
+  let s:callbacks = { 'on_exit': function('s:HandleOutputTT') }
+  let job = jobstart(printf("Rscript -e \"tinytex::tlmgr_install('%s')\"", a:pacs), s:callbacks)
+endfunction
+
 "" ---------------------------------------------------------------
 
 "" SyncTeX -------------------------------------------------------
@@ -179,4 +190,12 @@ augroup LaTeXuwu
   autocmd BufEnter *.tex if !filereadable('/tmp/nvim-latex') | :call serverstart('/tmp/nvim-latex') | endif
   autocmd FileType tex nnoremap <leader>f :call SyncTeXForward()<CR>
   autocmd FileType tex nnoremap <leader>p :w<CR>:call LaTeX()<CR>
+  autocmd FileType tex nnoremap <leader>P :w<CR>:call TinyTeXInstallMissing("")<left><left>
+augroup END
+
+""" Some fixes
+augroup WeirdoFiletypes
+  autocmd!
+  autocmd BufRead,BufNewFile *.conf,zathurarc setf texmf
+  autocmd BufRead,BufNewFile Rprofile setf r
 augroup END

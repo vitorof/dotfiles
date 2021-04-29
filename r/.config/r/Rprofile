@@ -1,0 +1,37 @@
+.First <- function() {
+  Sys.setenv(
+    R_HOME_USER = "~/src/r",
+    R_LIBS_USER = "~/.local/lib/r",
+    R_HISTFILE  = "~/.cache/r/hist.Rhistory"
+  )
+  .libPaths(c("~/.local/lib/r", .libPaths()))
+  # Welcome message
+  message("Welcome back, sir. Working directory is ", getwd())
+  myprompt <- crayon::combine_styles("bold", "red")
+  options(
+    tinytex.tlmgr.path = "~/.local/lib/tinytex/bin/x86_64-linux/tlmgr",
+    prompt = myprompt("λ> ")
+  )
+}
+
+tt_upgrade <- function() {
+  repac <- readline(prompt = "Reinstall all packages? [Y/n] ")
+  repac <- repac %in% "yY" || repac == ""
+  tinytex::reinstall_tinytex(
+    packages = repac,
+    dir      = tinytex::tinytex_root(error = TRUE),
+    add_path = FALSE,
+    force    = TRUE
+  )
+}
+
+tt_install <- function() {
+  options(tinytex.tlmgr.path = NULL)
+  tinytex::install_tinytex(
+    force = TRUE,
+    dir   = "~/.local/lib/tinytex",
+    add_path = FALSE
+  )
+  options(tinytex.tlmgr.path = "~/.local/lib/tinytex/bin/x86_64-linux/tlmgr")
+}
+#
