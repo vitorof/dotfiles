@@ -10,8 +10,10 @@ local update_interval = 30            -- in seconds
 local battery_text = wibox.widget.textbox()
 local battery_stat = wibox.container.background(wibox.widget.textbox('Bat '))
 
-local peter = gears.filesystem.get_configuration_dir() .. "icons/peter.jpg"
-local notified = false
+local config    = gears.filesystem.get_configuration_dir()
+local peter     = config .. "icons/peter.jpg"
+local palpatine = config .. "icons/palpatine.jpg"
+local notified  = false
 
 local battery = wibox.widget{
   battery_stat,
@@ -24,6 +26,18 @@ local function update_widget(bat)
   battery_text.markup = perc .. "%"
   if stat:sub(1,1) == "C" then
     battery_stat.fg = beautiful.xcolor2 --green
+    if perc and perc == "100" then
+      battery_stat.fg = beautiful.xcolor6 --cyan
+      naughty.notify({
+	title     = "Battery full",
+	text      = "\nUNLIMITED POWER",
+	font      = "sans 15",
+	fg        = beautiful.xcolor4,
+	icon      = palpatine,
+	icon_size = 200,
+	timeout   = 10
+      })
+    end
     notified = false
   elseif perc and tonumber(perc) <= 20 then
     battery_stat.fg = beautiful.xcolor1 --red
