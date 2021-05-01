@@ -24,7 +24,7 @@ let g:tokyonight_transparent_background = 1
 colorscheme tokyonight
 
 """ Startup page
-let g:startify_custom_header = startify#pad(split(system('tai ~/Pictures/mini-saborosa-crop.jpg'), '\n'))
+let g:startify_custom_header = startify#pad(split(system('tai ~/pics/mini-saborosa-crop.jpg'), '\n'))
 
 """ General settings
 filetype plugin on

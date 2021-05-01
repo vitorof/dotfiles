@@ -3,7 +3,7 @@
 echo -e "\033[1;35mLink start!\033[0m"
 
 shopt -s extglob
-ignore="@(README*|assets|*arandr)"
+ignore="@(README*|assets)"
 
 for dir in _config/* ; do
   case "$dir" in
